@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { db, auth } from "./lib/firebase";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+
 
 import {
   GoogleAuthProvider,
@@ -21,16 +24,19 @@ import {
 
 export default function Home() {
 const today = new Date()
-  .toISOString()
-  .split("T")[0];
-  
+ .toLocaleDateString("sv-SE")
+
 const [goal, setGoal] = useState("");
 const [victory, setVictory] = useState("");
 const [defeat, setDefeat] = useState("");
 const [testimony, setTestimony] = useState("");
+const [filterTag, setFilterTag] =
+  useState("");
 const [actions, setActions] = useState([
   { text: "", checked: false },
 ]);
+const [darkMode, setDarkMode] =
+  useState(false);
 const [logs, setLogs] = useState<any[]>([]);
 
 const [user, setUser] = useState<any>(null);
@@ -120,8 +126,7 @@ const changeDate = (days: number) => {
   current.setDate(current.getDate() + days);
 
   const newDate = current
-    .toISOString()
-    .split("T")[0];
+    .toLocaleDateString("sv-SE")
 
     setGoal("");
 setVictory("");
@@ -130,6 +135,10 @@ setTestimony("");
 setActions([
   { text: "", checked: false },
 ]);
+
+setSelectedTags([]);
+
+setFilterTag("");
 
   setSelectedDate(newDate);
 };
@@ -175,50 +184,110 @@ const tags = [
 "葛藤",
 ];
 
-return (
-  <main className="min-h-screen bg-white text-gray-800">
 
+return (
+  <main
+  className={`mx-auto min-h-screen max-w-2xl px-4 py-10 transition-all duration-300 ${
+    darkMode
+      ? "bg-[#111827] text-white"
+      : "bg-white text-gray-800"
+  }`}
+>
+  
+<header className="mb-10">
+  <h1 className="text-3xl font-light tracking-wide">
+    あしあと
+  </h1>
+
+  <p className="mt-2 text-sm text-gray-400">
+    今日の歩みを次に繋げる
+  </p>
+</header>   
   
 {/* 上部バー */} 
-<header className="sticky top-0 z-10 border-b bg-white/90 backdrop-blur"> 
-<div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
-   <button className="text-sm text-gray-500">
-← 戻る </button>
+<header
+  className={`sticky top-0 z-10 border-b backdrop-blur transition-all ${
+    darkMode
+      ? "border-gray-800 bg-gray-900/80"
+      : "border-gray-200 bg-white/80"
+  }`}
+>
+
+    <div className="flex items-center justify-between">
+     <button
+  className={`text-sm ${
+    darkMode
+      ? "text-gray-200"
+      : "text-gray-500"
+  }`}
+>
+        ← 戻る
+      </button>
 
       <h1 className="text-sm font-medium">
         5月の振り返り
       </h1>
 
-      <span className="text-xs text-gray-400">
-  {saving ? "保存中..." : "保存済み"}
-      </span>
+      <button
+        onClick={() =>
+          setDarkMode(!darkMode)
+        }
+        className="rounded-full bg-gray-200 px-3 py-1 text-xs rounded-full"
+      >
+        {darkMode ? "☀️" : "🌙"}
+      </button>
+    </div>
 
- <p className="text-xs">
-    {user ? "ログイン中" : "未ログイン"}
-  </p>
+    <div
+  className={`flex items-center justify-between text-xs ${
+    darkMode
+      ? "text-gray-200"
+      : "text-gray-400"
+  }`}
+>
 
-   {user ? (
-  <button
-    onClick={logout}
-    className="rounded-full bg-red-500 px-4 py-2 text-xs text-white"
-  >
-    ログアウト
-  </button>
-) : (
-  <button
-    onClick={login}
-    className="rounded-full bg-gray-900 px-4 py-2 text-xs text-white"
-  >
-    Googleログイン
-  </button>
-)}
+      <div className="flex items-center gap-3">
+        <span>
+          {saving
+            ? "☁ 保存中..."
+            : "✓ 保存済み"}
+        </span>
 
-<p className="text-xs text-gray-500">
+      </div>
+
+      <div className="flex items-center gap-3">
+
+        <p
+  className={`${
+    darkMode
+      ? "text-gray-200"
+      : "text-gray-500"
+  }`}
+>
   {user?.displayName}
 </p>
 
+        {user ? (
+          <button
+            onClick={logout}
+            className="rounded-full bg-red-500 px-3 py-1 text-xs rounded-full text-white"
+          >
+            ログアウト
+          </button>
+        ) : (
+          <button
+            onClick={login}
+            className="rounded-full bg-[#111827] px-3 py-1 text-xs rounded-full text-white"
+          >
+            Googleログイン
+          </button>
+        )}
+
+      </div>
+
     </div>
-  </header>
+
+</header>
 
   {/* 本文 */}
   <div className="mx-auto flex max-w-2xl flex-col gap-8 px-5 py-8">
@@ -249,7 +318,7 @@ return (
     </section>
 
     {/* 今日の目標 */}
-    <section className="space-y-3">
+    <section className="space-y-6">
       <h3 className="text-lg font-medium">
         今日の目標
       </h3>
@@ -307,7 +376,12 @@ console.log("保存開始");
       setSaving(false);
     }, 1000);
   }}
-  className="min-h-[120px] w-full rounded-2xl bg-gray-50 p-5 outline-none"
+  className={`min-h-[120px] w-full rounded-2xl p-5 shadow-sm outline-none placeholder:text-gray-400 transition-all duration-200 focus:ring-2 ${
+  darkMode
+    ? "bg-gray-800/80 text-white focus:ring-gray-600"
+    : "bg-gray-50 text-gray-800 focus:ring-gray-300"
+}`}
+
   placeholder={
   user
     ? "今日はどんな1日にしたいですか？"
@@ -338,7 +412,13 @@ console.log("保存開始");
 </button>
       </div>
 
-      <div className="space-y-3 rounded-2xl bg-gray-50 p-5">
+    <div
+ className={`space-y-3 rounded-2xl p-5 shadow-sm placeholder:text-gray-400 transition-all duration-300 focus-within:ring-2 ${
+  darkMode
+    ? "bg-gray-800/80 focus-within:ring-gray-600"
+    : "bg-gray-50 focus-within:ring-gray-300"
+}`}
+>
   {actions.map((action, index) => (
     <label
       key={index}
@@ -421,7 +501,7 @@ fetchLogs();
     </section>
 
     {/* 勝利点 */}
-    <section className="space-y-3">
+    <section className="space-y-6">
       <h3 className="text-lg font-medium">
         勝利点
       </h3>
@@ -459,13 +539,17 @@ fetchLogs();
       setSaving(false);
     }, 1000);
   }}
-  className="min-h-[180px] w-full rounded-2xl bg-gray-50 p-5 outline-none"
+  className={`min-h-[180px] w-full rounded-2xl p-5 shadow-sm outline-none placeholder:text-gray-400 transition-all duration-200 focus:ring-2 ${
+  darkMode
+    ? "bg-gray-800/80 text-white focus:ring-gray-600"
+    : "bg-gray-50 text-gray-800 focus:ring-gray-300"
+}`}
   placeholder="今日の勝利や感謝を書いてみましょう"
 />
     </section>
 
     {/* 敗北点 */}
-    <section className="space-y-3">
+    <section className="space-y-6">
       <h3 className="text-lg font-medium">
         敗北点
       </h3>
@@ -503,13 +587,18 @@ await setDoc(
       setSaving(false);
     }, 1000);
   }}
-  className="min-h-[180px] w-full rounded-2xl bg-gray-50 p-5 outline-none"
+ className={`min-h-[180px] w-full rounded-2xl p-5 shadow-sm outline-none placeholder:text-gray-400 transition-all duration-200 focus:ring-2 ${
+  darkMode
+    ? "bg-gray-800/80 text-white focus:ring-gray-600"
+    : "bg-gray-50 text-gray-800 focus:ring-gray-300"
+}`}
+
   placeholder="悔しかったことや葛藤を書いてみましょう"
 />
     </section>
 
     {/* 神様との出会い・証 */}
-    <section className="space-y-3">
+    <section className="space-y-6">
       <h3 className="text-lg font-medium">
         神様との出会い・証
       </h3>
@@ -547,7 +636,12 @@ await setDoc(
       setSaving(false);
     }, 1000);
   }}
-  className="min-h-[180px] w-full rounded-2xl bg-gray-50 p-5 outline-none"
+  className={`min-h-[180px] w-full rounded-2xl p-5 shadow-sm outline-none placeholder:text-gray-400 transition-all duration-200 focus:ring-2 ${
+  darkMode
+    ? "bg-gray-800/80 text-white focus:ring-gray-600"
+    : "bg-gray-50 text-gray-800 focus:ring-gray-300"
+}`}
+
   placeholder="今日感じたことを書いてみましょう"
 />
     </section>
@@ -597,10 +691,10 @@ await setDoc(
 
     fetchLogs();
   }}
-  className={`rounded-full px-4 py-2 text-sm transition ${
+  className={`rounded-full px-4 py-2 text-sm transition-all duration-300 ${
     selectedTags.includes(tag)
-      ? "bg-gray-800 text-white"
-      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+      ? "bg-gray-800/80 text-white"
+      : "bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all duration-200"
   }`}
 >
   #{tag}
@@ -609,24 +703,109 @@ await setDoc(
       </div>
 
       <input
-        className="w-full rounded-2xl bg-gray-50 p-4 outline-none"
+        className={`w-full rounded-2xl p-4 shadow-sm outline-none placeholder:text-gray-400 ${
+  darkMode
+    ? "bg-gray-800/80 text-white"
+    : "bg-gray-50 text-gray-800"
+}`}
+
         placeholder="自由タグを追加"
       />
     </section>
 
     <section className="space-y-4">
+
+       <section className="space-y-4">
+ <Calendar
+  className={
+    darkMode
+      ? "dark-calendar"
+      : ""
+  }
+    onChange={(date) => {
+      const selected = new Date(date as Date)
+        .toLocaleDateString("sv-SE")
+
+        setFilterTag("");
+
+      setSelectedDate(selected);
+    }}
+    value={new Date(selectedDate)}
+    tileContent={({ date, view }) => {
+  if (view !== "month") return null;
+
+ const formatted =
+  date.toLocaleDateString("sv-SE");
+
+  const hasLog = logs.some(
+    (log) => log.date === formatted
+  );
+
+  return hasLog ? (
+    <div className="flex justify-center">
+      <div className="mt-1 h-2 w-2 rounded-fullbg-gray-800" />
+    </div>
+  ) : null;
+}}
+  />
+</section>
+
+<div className="flex flex-wrap gap-2">
+  {tags.map((tag) => (
+    <button
+      key={tag}
+      onClick={() =>
+        setFilterTag(tag)
+      }
+      className={`rounded-full px-4 py-2 text-sm ${
+        filterTag === tag
+          ? "bg-gray-800/80 text-white"
+          : "bg-gray-100 text-gray-600"
+      }`}
+    >
+      #{tag}
+    </button>
+  ))}
+
+  <button
+    onClick={() => setFilterTag("")}
+    className="rounded-full bg-red-100 px-4 py-2 text-sm"
+  >
+    解除
+  </button>
+</div>
+
   <h3 className="text-lg font-medium">
+    
     過去の記録
   </h3>
 
   <div className="space-y-2">
-    {logs.map((log) => (
+  {logs
+  .filter((log) => {
+    if (!filterTag) return true;
+
+    return log.tags?.includes(filterTag);
+  })
+  .sort(
+    (a, b) =>
+      new Date(b.date).getTime() -
+      new Date(a.date).getTime()
+  )
+  .slice(0, 7)
+  .map((log) => (
+
       <div
   key={log.id}
   onClick={() => {
     setSelectedDate(log.id);
   }}
-        className="cursor-pointer rounded-2xl bg-gray-50 p-4 transition hover:bg-gray-100"
+        className={`cursor-pointer rounded-2xl p-4 shadow-sm transition-all duration-200 hover:bg-gray-100 hover:-translate-y-0.5 placeholder:text-gray-400 ${
+  darkMode
+    ? "bg-gray-800/80 text-white"
+    : "bg-gray-50 text-gray-800"
+}`}
+
       >
         <p className="text-sm text-gray-400">
           {log.date}
