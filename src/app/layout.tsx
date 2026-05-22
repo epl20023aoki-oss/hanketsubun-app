@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "反決分",
+  title: "あしあと",
   description: "日々の振り返りアプリ",
   manifest: "/manifest.json",
 };

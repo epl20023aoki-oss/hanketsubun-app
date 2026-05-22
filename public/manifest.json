@@ -1,6 +1,6 @@
 {
-  "name": "半決分",
-  "short_name": "半決分",
+  "name": "あしあと",
+  "short_name": "あしあと",
   "description": "日々の振り返りアプリ",
   "start_url": "/",
   "display": "standalone",
