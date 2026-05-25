@@ -1,825 +1,133 @@
-"use client";
+import Link from "next/link";
 
-import { useEffect, useState } from "react";
-import { db, auth } from "./lib/firebase";
-import Calendar from "react-calendar";
-import "react-calendar/dist/Calendar.css";
-
-
-import {
-  GoogleAuthProvider,
-  signInWithPopup,
-  onAuthStateChanged,
-  signOut,
-} from "firebase/auth";
-
-import {
-  doc,
-  setDoc,
-  getDoc,
-  collection,
-  getDocs,
-} from "firebase/firestore";
-
+const dailyWords = [
+"大きい事を目標にすればするほど　大きい忍耐が必要なのです。",
+"同一なる実力をもっても勝つ秘訣は　他よりたくさん動くことである。",
+"試練と苦労は私の恩讐ではなく　輝かしい価値を　決定してくれる材料である。",
+"勝利の秘訣は勝つまでやることです。投入すれば必ず最後、どこかで結果が現れます。",
+"信仰の道は結果ではない。どれだけ時間と誠心誠意を尽くすかが大切なんだよ。",
+"我々は神の為の闘いをしよう、絶対に滅びない。イスラエル民族が荒野で倒れたのは、勝利しなければならないという信念がなかったためである。", 
+"皆さんが決して躓かない事を保証できるひとつの確かな道は悔い改めの道、日々悔い改める人は、たとえその事を悟っていなくても成長しているのです。", 
+"愛を受けなかった事を恨みとせずに、愛を授けられなかったことを恨みとしなければならない。", 
+"勝敗は十年後に決定されるのではなく、今のこの時点において決定する。この現在の時点を乗り越えることが出来ない人は、勝利者となることができないであろう。", 
+"ニコニコ笑いなさい、ニコニコ笑ってね、心配顔では神は働きません、毎日鏡を見て「私は神に愛されている」「神は私と共にいる」と言いなさい、そうしないと心配の霊界が寄って来て、信仰の火が消える。", 
+"全ての困難を自分で受けていると思うな神と共に受けていると思いなさい。", 
+"神の立場を考えて見た場合、いかに可哀想な神であろうか我々、いかに苦労すると言っても一生以外にはない地上生活は一世紀以内の生涯である。", 
+"完全投入せずして完全な結果を願うところにおいて失敗が生じてくる。", 
+"罪がなくて勝利するのが簡単だった者より罪が多くて勝利するのが困難だった者が勝利してくれる方が、私にとってどれ程大きな希望となることだろうか。", 
+"賢い者はひとたび歩み始めた道を全うします、勝利は耐え忍んで最後まで全行程を走り抜く者の上にのみあります。", 
+"士気を失うな、自信がない所に前進があるはずがない。みずから士気を呼び起こして事を成していきなさい、神は意欲がない所には協助なさらない。", 
+"祈りの時は謙遜になれるというんだよ祈祷とは何か、一人で考えるんじゃないよ、神様と共に考える、神様と共に相談しよう、こういう立場が絶対必要だというんだね。", 
+"先生は監獄で拷問を受ける時も、神がこのような道に送ってくださる時行けという神より、行かせねばならない事情を持っていた神を先に考えた", 
+"あなた達は「もうできない」というできるかできないかは死ぬまでやってみてから結論すべきことだよ不平を言うのは、神を責めることだ。", 
+"雨が降って疲れてその仕事を自分がしたくない時に、その仕事を自分のためにではなく天のために人類のためにしたのでより価値のあることになるということを皆さんは知らなければなりません。", 
+"出来ないというな。できなかったら無理にでもやってみなさい、必ず道がある見つけ出しなさい。", 
+"無条件に天の前に捧げ意のままに任せる心が必要である、神様は私の父であるので私がいなければならない所をよく知って、私が幸福になり満足を感じ得る場所に私を導かれる。",
+"笑顔で気分のよい姿はみな見つめます気分の悪い表情をするのは悪です。これが恐ろしい戦法なのです。これが善悪の分岐点です。", 
+"堕落の道を乗り越えるには絶対服従の道以外にない、絶対服従しながらも希望に満ちて喜んで行かなければならない。それは再創造の道だから！", 
+"サタンは、愛を生命視できても犠牲の愛を行う事は出来ないのです。天使長は自己中心の愛からはじまり犠牲的愛、為に尽くす愛をなしえなかったため堕落したのです。", 
+"苦労した結果がすぐ出ないといって落胆するな、外的に戻ってくるまでどれくらい精誠を尽くしたかが問題である。", 
+"神の試練は何故あるか？悪を断ち切り私の心を一つにさせる為、私の心情を神の心情と一つになるようにする為、神の過去の日々を正しく体恤させる為、故に喜んで感謝せよ、神が私を愛してくださっている証拠である。", 
+"後退することも前進することも自分自身が母体である。後退する人は人も嫌うが神も嫌うのである。", 
+"時の転換点における勝負は時間と努力が問題である。そしてこれを動かしていくためには勇気が必要である。", 
+"罪があるからと言って嘆くな自分が及ばざると言って嘆息するな、及ばざる者でも投入し犠牲の道を辿ったら、満ちて勝利の花が咲く。", 
+"だから励んでほしい、あとわずかの後に迎えるその日まで、つらくても辛抱して後退せず歩んで勝利の旗を掲げて神に凱旋歌を挙げるのが我々の使命であります。", 
+]; 
 
 export default function Home() {
-const today = new Date()
- .toLocaleDateString("sv-SE")
 
-const [goal, setGoal] = useState("");
-const [victory, setVictory] = useState("");
-const [defeat, setDefeat] = useState("");
-const [testimony, setTestimony] = useState("");
-const [filterTag, setFilterTag] =
-  useState("");
-const [actions, setActions] = useState([
-  { text: "", checked: false },
-]);
-const [darkMode, setDarkMode] =
-  useState(false);
-const [logs, setLogs] = useState<any[]>([]);
+    const today = new Date().getDate();
 
-const [user, setUser] = useState<any>(null);
-
-const [selectedTags, setSelectedTags] =
-  useState<string[]>([]);
-
- const fetchLogs = async () => {
-  if (!user) return;
-
-    const querySnapshot = await getDocs(
-    collection(
-  db,
-  "users",
-  user.uid,
-  "daily_logs"
-)
-    );
-
-    const logsData = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    setLogs(logsData);
-  };
-
-  const [saving, setSaving] = useState(false);
-  const [selectedDate, setSelectedDate] =
-  useState(today);
-
- useEffect(() => {
-    if (!user) return;
-    
-  const fetchData = async () => {
+const todaysWord =
+  dailyWords[today - 2];
   
+  return (
+    <main className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-10">
 
-const docRef = doc(
-  db,
-  "users",
-  user.uid,
-  "daily_logs",
-  selectedDate
-);
-
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-
-      setGoal(data.goal || "");
-      setVictory(data.victory || "");
-      setDefeat(data.defeat || "");
-      setTestimony(data.testimony || "");
-
-      setActions(
-        data.actions || [
-          { text: "", checked: false },
-        ]
-      );
-
-      setSelectedTags(data.tags || []);
+      <header className="space-y-3">
       
-    } else {
-      setGoal("");
-      setVictory("");
-      setDefeat("");
-      setTestimony("");
 
-      setActions([
-        { text: "", checked: false },
-        
-      ]);
-    }
-  };
+        <h1 className="text-4xl font-light tracking-wide">
+          あしあと
+        </h1>
 
-  fetchData();
-
- 
-
-  fetchLogs();
-}, [selectedDate, user]);
-
-const changeDate = (days: number) => {
-  const current = new Date(selectedDate);
-
-  current.setDate(current.getDate() + days);
-
-  const newDate = current
-    .toLocaleDateString("sv-SE")
-
-    setGoal("");
-setVictory("");
-setDefeat("");
-setTestimony("");
-setActions([
-  { text: "", checked: false },
-]);
-
-setSelectedTags([]);
-
-setFilterTag("");
-
-  setSelectedDate(newDate);
-};
-
-useEffect(() => {
-  const unsubscribe = onAuthStateChanged(
-    auth,
-    (currentUser) => {
-      console.log("認証状態", currentUser);
-
-      setUser(currentUser);
-    }
-  );
-
-  return () => unsubscribe();
-}, []);
-
-const login = async () => {
-  try {
-    const provider = new GoogleAuthProvider();
-
-    const result = await signInWithPopup(
-      auth,
-      provider
-    );
-
-    console.log(result.user);
-  } catch (error) {
-    console.log("ログインエラー", error);
-  }
-};
-
-const logout = async () => {
-  await signOut(auth);
-};
-
-const tags = [
-"重要",
-"証",
-"祈り",
-"人間関係",
-"感謝",
-"葛藤",
-];
-
-
-return (
-  <main
-  className={`mx-auto min-h-screen max-w-2xl px-4 py-10 transition-all duration-300 ${
-    darkMode
-      ? "bg-[#111827] text-white"
-      : "bg-white text-gray-800"
-  }`}
->
-  
-<header className="mb-10">
-  <h1 className="text-3xl font-light tracking-wide">
-    あしあと
-  </h1>
-
-  <p className="mt-2 text-sm text-gray-400">
-    今日の歩みを次に繋げる
-  </p>
-</header>   
-  
-{/* 上部バー */} 
-<header
-  className={`sticky top-0 z-10 border-b backdrop-blur transition-all ${
-    darkMode
-      ? "border-gray-800 bg-gray-900/80"
-      : "border-gray-200 bg-white/80"
-  }`}
->
-
-    <div className="flex items-center justify-between">
-     <button
-  className={`text-sm ${
-    darkMode
-      ? "text-gray-200"
-      : "text-gray-500"
-  }`}
->
-        ← 戻る
-      </button>
-
-      <h1 className="text-sm font-medium">
-        5月の振り返り
-      </h1>
-
-      <button
-        onClick={() =>
-          setDarkMode(!darkMode)
-        }
-        className="rounded-full bg-gray-200 px-3 py-1 text-xs rounded-full"
-      >
-        {darkMode ? "☀️" : "🌙"}
-      </button>
-    </div>
-
-    <div
-  className={`flex items-center justify-between text-xs ${
-    darkMode
-      ? "text-gray-200"
-      : "text-gray-400"
-  }`}
->
-
-      <div className="flex items-center gap-3">
-        <span>
-          {saving
-            ? "☁ 保存中..."
-            : "✓ 保存済み"}
-        </span>
-
-      </div>
-
-      <div className="flex items-center gap-3">
-
-        <p
-  className={`${
-    darkMode
-      ? "text-gray-200"
-      : "text-gray-500"
-  }`}
->
-  {user?.displayName}
-</p>
-
-        {user ? (
-          <button
-            onClick={logout}
-            className="rounded-full bg-red-500 px-3 py-1 text-xs rounded-full text-white"
-          >
-            ログアウト
-          </button>
-        ) : (
-          <button
-            onClick={login}
-            className="rounded-full bg-[#111827] px-3 py-1 text-xs rounded-full text-white"
-          >
-            Googleログイン
-          </button>
-        )}
-
-      </div>
-
-    </div>
-
-</header>
-
-  {/* 本文 */}
-  <div className="mx-auto flex max-w-2xl flex-col gap-8 px-5 py-8">
-    {/* 日付 */}
-    <section>
-     <div className="mb-2 flex items-center gap-4 text-sm text-gray-400">
-  <button
-    onClick={() => changeDate(-1)}
-    className="rounded-full px-2 py-1 hover:bg-gray-100"
-  >
-    
-    ◀
-  </button>
-
-  <p>{selectedDate}</p>
-
-  <button
-    onClick={() => changeDate(1)}
-    className="rounded-full px-2 py-1 hover:bg-gray-100"
-  >
-    ▶
-  </button>
-</div>
-
-      <h2 className="text-3xl font-light tracking-wide">
-        今日の振り返り
-      </h2>
-    </section>
-
-    {/* 今日の目標 */}
-    <section className="space-y-6">
-      <h3 className="text-lg font-medium">
-        今日の目標
-      </h3>
-{user && (
-<textarea
-  value={goal}
-  onChange={async (e) => {
-    setGoal(e.target.value);
-
-    setSaving(true);
-
-    console.log("user確認", user);
-
-if (!user?.uid) {
-  console.log("userなし");
-  return;
-}
-
-console.log("保存開始");
-
-    try {
-      await setDoc(
-        doc(
-          db,
-          "users",
-          user.uid,
-          "daily_logs",
-          selectedDate
-        ),
-        {
-          goal: e.target.value,
-          victory,
-          defeat,
-          testimony,
-          actions,
-          tags: selectedTags,
-          date: selectedDate,
-          updatedAt: new Date(),
-        }
-      );
-
-      console.log("保存成功");
-
-      fetchLogs();
-
-      localStorage.setItem(
-        "goal",
-        e.target.value
-      );
-    } catch (error) {
-      console.log("保存エラー", error);
-    }
-
-    setTimeout(() => {
-      setSaving(false);
-    }, 1000);
-  }}
-  className={`min-h-[120px] w-full rounded-2xl p-5 shadow-sm outline-none placeholder:text-gray-400 transition-all duration-200 focus:ring-2 ${
-  darkMode
-    ? "bg-gray-800/80 text-white focus:ring-gray-600"
-    : "bg-gray-50 text-gray-800 focus:ring-gray-300"
-}`}
-
-  placeholder={
-  user
-    ? "今日はどんな1日にしたいですか？"
-    : "Googleログインしてください"
-}
-/>
-)}
-
-    </section>
-
-    {/* アクションプラン */}
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">
-          今日のアクションプラン
-        </h3>
-
-       <button
-  className="text-sm text-gray-400"
-  onClick={() => {
-    setActions([
-      ...actions,
-      { text: "", checked: false },
-    ]);
-  }}
->
-  ＋追加
-</button>
-      </div>
-
-    <div
- className={`space-y-3 rounded-2xl p-5 shadow-sm placeholder:text-gray-400 transition-all duration-300 focus-within:ring-2 ${
-  darkMode
-    ? "bg-gray-800/80 focus-within:ring-gray-600"
-    : "bg-gray-50 focus-within:ring-gray-300"
-}`}
->
-  {actions.map((action, index) => (
-    <label
-      key={index}
-      className="flex items-center gap-3"
-    >
-      <input
-        type="checkbox"
-        checked={action.checked}
-       onChange={async (e) => {
-          const updated = [...actions];
-
-          updated[index].checked =
-            !updated[index].checked;
-
-          if (!user) return;
-
-await setDoc(
-  doc(
-    db,
-    "users",
-    user.uid,
-    "daily_logs",
-    selectedDate
-  ), {
-  goal,
-  victory,
-  defeat: e.target.value,
-  testimony,
-  actions,
-  tags: selectedTags,
-  date: selectedDate,
-  updatedAt: new Date(),
-});
-
-fetchLogs();
-
-        }}
-      />
-
-      <input
-        value={action.text}
-       onChange={async (e) => {
-          const updated = [...actions];
-
-          updated[index].text = e.target.value;
-
-          setActions(updated);
-
-  setSaving(true); 
-
-          if (!user) return;
-
-await setDoc(
-  doc(
-    db,
-    "users",
-    user.uid,
-    "daily_logs",
-    selectedDate
-  ), {
-  goal,
-  victory,
-  defeat: e.target.value,
-  testimony,
-  actions,
-  tags: selectedTags,
-  date: selectedDate,
-  updatedAt: new Date(),
-});
-
-fetchLogs();
-
-        }}
-        className="w-full bg-transparent outline-none"
-        placeholder="アクションを入力"
-      />
-    </label>
-  ))}
-</div>
-    </section>
-
-    {/* 勝利点 */}
-    <section className="space-y-6">
-      <h3 className="text-lg font-medium">
-        勝利点
-      </h3>
-
-      <textarea
-  value={victory}
-  onChange={async (e) => {
-    setVictory(e.target.value);
-
-  setSaving(true); 
-
-    if (!user) return;
-
-await setDoc(
-  doc(
-    db,
-    "users",
-    user.uid,
-    "daily_logs",
-    selectedDate
-  ), {
-  goal,
-  victory,
-  defeat: e.target.value,
-  testimony,
-  actions,
-  tags: selectedTags,
-  date: selectedDate,
-  updatedAt: new Date(),
-});
-
-fetchLogs();
-
-    setTimeout(() => {
-      setSaving(false);
-    }, 1000);
-  }}
-  className={`min-h-[180px] w-full rounded-2xl p-5 shadow-sm outline-none placeholder:text-gray-400 transition-all duration-200 focus:ring-2 ${
-  darkMode
-    ? "bg-gray-800/80 text-white focus:ring-gray-600"
-    : "bg-gray-50 text-gray-800 focus:ring-gray-300"
-}`}
-  placeholder="今日の勝利や感謝を書いてみましょう"
-/>
-    </section>
-
-    {/* 敗北点 */}
-    <section className="space-y-6">
-      <h3 className="text-lg font-medium">
-        敗北点
-      </h3>
-
-     <textarea
-  value={defeat}
- onChange={async (e) => {
-    setDefeat(e.target.value);
-
-     setSaving(true);
-
-    if (!user) return;
-
-await setDoc(
-  doc(
-    db,
-    "users",
-    user.uid,
-    "daily_logs",
-    selectedDate
-  ), {
-  goal,
-  victory,
-  defeat: e.target.value,
-  testimony,
-  actions,
-  tags: selectedTags,
-  date: selectedDate,
-  updatedAt: new Date(),
-});
-
-   fetchLogs();
-
-    setTimeout(() => {
-      setSaving(false);
-    }, 1000);
-  }}
- className={`min-h-[180px] w-full rounded-2xl p-5 shadow-sm outline-none placeholder:text-gray-400 transition-all duration-200 focus:ring-2 ${
-  darkMode
-    ? "bg-gray-800/80 text-white focus:ring-gray-600"
-    : "bg-gray-50 text-gray-800 focus:ring-gray-300"
-}`}
-
-  placeholder="悔しかったことや葛藤を書いてみましょう"
-/>
-    </section>
-
-    {/* 神様との出会い・証 */}
-    <section className="space-y-6">
-      <h3 className="text-lg font-medium">
-        神様との出会い・証
-      </h3>
-
-      <textarea
-  value={testimony}
-  onChange={async (e) => {
-    setTestimony(e.target.value);
-
-  setSaving(true);
-
-    if (!user) return;
-
-await setDoc(
-  doc(
-    db,
-    "users",
-    user.uid,
-    "daily_logs",
-    selectedDate
-  ), {
-  goal,
-  victory,
-  defeat: e.target.value,
-  testimony,
-  actions,
-  tags: selectedTags,
-  date: selectedDate,
-  updatedAt: new Date(),
-});
-
-  fetchLogs();
-
-    setTimeout(() => {
-      setSaving(false);
-    }, 1000);
-  }}
-  className={`min-h-[180px] w-full rounded-2xl p-5 shadow-sm outline-none placeholder:text-gray-400 transition-all duration-200 focus:ring-2 ${
-  darkMode
-    ? "bg-gray-800/80 text-white focus:ring-gray-600"
-    : "bg-gray-50 text-gray-800 focus:ring-gray-300"
-}`}
-
-  placeholder="今日感じたことを書いてみましょう"
-/>
-    </section>
-
-    {/* タグ */}
-    <section className="space-y-4">
-      <h3 className="text-lg font-medium">
-        タグ
-      </h3>
-
-      <div className="flex flex-wrap gap-2">
-        {tags.map((tag) => (
-         <button
-  key={tag}
-  onClick={async () => {
-    let updatedTags = [...selectedTags];
-
-    if (selectedTags.includes(tag)) {
-      updatedTags = updatedTags.filter(
-        (t) => t !== tag
-      );
-    } else {
-      updatedTags.push(tag);
-    }
-
-    setSelectedTags(updatedTags);
-
-    if (!user) return;
-
-await setDoc(
-  doc(
-    db,
-    "users",
-    user.uid,
-    "daily_logs",
-    selectedDate
-  ), {
-      goal,
-      victory,
-      defeat,
-      testimony,
-      actions,
-      tags: updatedTags,
-      date: selectedDate,
-      updatedAt: new Date(),
-    });
-
-    fetchLogs();
-  }}
-  className={`rounded-full px-4 py-2 text-sm transition-all duration-300 ${
-    selectedTags.includes(tag)
-      ? "bg-gray-800/80 text-white"
-      : "bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all duration-200"
-  }`}
->
-  #{tag}
-</button>
-        ))}
-      </div>
-
-      <input
-        className={`w-full rounded-2xl p-4 shadow-sm outline-none placeholder:text-gray-400 ${
-  darkMode
-    ? "bg-gray-800/80 text-white"
-    : "bg-gray-50 text-gray-800"
-}`}
-
-        placeholder="自由タグを追加"
-      />
-    </section>
-
-    <section className="space-y-4">
-
-       <section className="space-y-4">
- <Calendar
-  className={
-    darkMode
-      ? "dark-calendar"
-      : ""
-  }
-    onChange={(date) => {
-      const selected = new Date(date as Date)
-        .toLocaleDateString("sv-SE")
-
-        setFilterTag("");
-
-      setSelectedDate(selected);
-    }}
-    value={new Date(selectedDate)}
-    tileContent={({ date, view }) => {
-  if (view !== "month") return null;
-
- const formatted =
-  date.toLocaleDateString("sv-SE");
-
-  const hasLog = logs.some(
-    (log) => log.date === formatted
-  );
-
-  return hasLog ? (
-    <div className="flex justify-center">
-      <div className="mt-1 h-2 w-2 rounded-fullbg-gray-800" />
-    </div>
-  ) : null;
-}}
-  />
-</section>
-
-<div className="flex flex-wrap gap-2">
-  {tags.map((tag) => (
-    <button
-      key={tag}
-      onClick={() =>
-        setFilterTag(tag)
-      }
-      className={`rounded-full px-4 py-2 text-sm ${
-        filterTag === tag
-          ? "bg-gray-800/80 text-white"
-          : "bg-gray-100 text-gray-600"
-      }`}
-    >
-      #{tag}
-    </button>
-  ))}
-
-  <button
-    onClick={() => setFilterTag("")}
-    className="rounded-full bg-red-100 px-4 py-2 text-sm"
-  >
-    解除
-  </button>
-</div>
-
-  <h3 className="text-lg font-medium">
-    
-    過去の記録
-  </h3>
-
-  <div className="space-y-2">
-  {logs
-  .filter((log) => {
-    if (!filterTag) return true;
-
-    return log.tags?.includes(filterTag);
-  })
-  .sort(
-    (a, b) =>
-      new Date(b.date).getTime() -
-      new Date(a.date).getTime()
-  )
-  .slice(0, 7)
-  .map((log) => (
-
-      <div
-  key={log.id}
-  onClick={() => {
-    setSelectedDate(log.id);
-  }}
-        className={`cursor-pointer rounded-2xl p-4 shadow-sm transition-all duration-200 hover:bg-gray-100 hover:-translate-y-0.5 placeholder:text-gray-400 ${
-  darkMode
-    ? "bg-gray-800/80 text-white"
-    : "bg-gray-50 text-gray-800"
-}`}
-
-      >
         <p className="text-sm text-gray-400">
-          {log.date}
+          今日の歩みを次に繋げる
         </p>
+          <section className="mt-10">
+  <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
 
-        <p className="mt-1 line-clamp-2">
-          {log.goal}
-        </p>
-      </div>
-    ))}
+    <p className="text-sm text-gray-400">
+      日めくりのみ言
+    </p>
+
+    <p className="mt-4 text-lg leading-8">
+     {todaysWord}
+    </p>
+
+    <p className="mt-4 text-right text-sm text-gray-400">
+      - 今日のみ言 -
+    </p>
+
   </div>
 </section>
 
+<section className="mt-6">
+  <div
+   className="rounded-3xl bg-gray-50 p-6 shadow-sm transition-all duration-300"
+  >
+
+    <p className="text-sm text-gray-400">
+      今月の目標
+    </p>
+
+    <p className="mt-4 text-lg leading-8">
+      小さな感謝を言葉にする
+    </p>
+
   </div>
-</main>
-);
+</section>
+
+<section className="mt-6">
+  <div
+    className="rounded-3xl bg-gray-50 p-6 shadow-sm transition-all duration-300"
+  >
+
+    <p className="text-sm text-gray-400">
+      今月の歩み
+    </p>
+
+    <p className="mt-4 text-4xl font-light">
+      12
+    </p>
+
+    <p className="mt-2 text-sm text-gray-400">
+      日記録しました
+    </p>
+
+  </div>
+</section>
+
+
+      </header>
+
+      <section className="mt-10 space-y-4">
+
+        <Link
+          href="/journal"
+          className="block rounded-3xl bg-gray-50 p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+        >
+          <p className="text-sm text-gray-400">
+            今日の記録
+          </p>
+
+          <h2 className="mt-2 text-2xl">
+            あしあとを書く
+          </h2>
+        </Link>
+
+      </section>
+
+    </main>
+  );
 }
