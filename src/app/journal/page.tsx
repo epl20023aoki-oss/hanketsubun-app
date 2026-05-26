@@ -33,6 +33,8 @@ const [defeat, setDefeat] = useState("");
 const [testimony, setTestimony] = useState("");
 const [filterTag, setFilterTag] =
   useState("");
+  const [reflection, setReflection] =
+  useState("");
 const [actions, setActions] = useState([
   { text: "", checked: false },
 ]);
@@ -172,6 +174,19 @@ const login = async () => {
   }
 };
 
+useEffect(() => {
+
+  const savedReflection =
+    localStorage.getItem(
+      "reflection"
+    );
+
+  if (savedReflection) {
+    setReflection(savedReflection);
+  }
+
+}, []);
+
 const logout = async () => {
   await signOut(auth);
 };
@@ -185,6 +200,20 @@ const tags = [
 "葛藤",
 ];
 
+useEffect(() => {
+
+  const savedReflection =
+    localStorage.getItem(
+      `reflection-${selectedDate}`
+    );
+
+  if (savedReflection) {
+    setReflection(savedReflection);
+  } else {
+    setReflection("");
+  }
+
+}, [selectedDate]);
 
 return (
   <main
@@ -325,21 +354,15 @@ return (
         今日の目標
       </h3>
 {user && (
-<textarea
+  <>
+    <textarea
   value={goal}
   onChange={async (e) => {
     setGoal(e.target.value);
 
     setSaving(true);
 
-    console.log("user確認", user);
-
-if (!user?.uid) {
-  console.log("userなし");
-  return;
-}
-
-console.log("保存開始");
+    if (!user?.uid) return;
 
     try {
       await setDoc(
@@ -362,14 +385,13 @@ console.log("保存開始");
         }
       );
 
-      console.log("保存成功");
-
       fetchLogs();
 
       localStorage.setItem(
         "goal",
         e.target.value
       );
+
     } catch (error) {
       console.log("保存エラー", error);
     }
@@ -379,17 +401,44 @@ console.log("保存開始");
     }, 1000);
   }}
   className={`min-h-[120px] w-full rounded-2xl p-5 shadow-sm outline-none placeholder:text-gray-400 transition-all duration-200 focus:ring-2 ${
-  darkMode
-    ? "bg-gray-800/80 text-white focus:ring-gray-600"
-    : "bg-gray-50 text-gray-800 focus:ring-gray-300"
-}`}
-
+    darkMode
+      ? "bg-gray-800/80 text-white focus:ring-gray-600"
+      : "bg-gray-50 text-gray-800 focus:ring-gray-300"
+  }`}
   placeholder={
-  user
-    ? "今日はどんな1日にしたいですか？"
-    : "Googleログインしてください"
-}
+    user
+      ? "今日はどんな1日にしたいですか？"
+      : "Googleログインしてください"
+  }
 />
+
+<div
+  className={`rounded-2xl p-4 transition-all duration-300 focus-within:ring-2 ${
+    darkMode
+      ? "bg-gray-800/40 focus-within:ring-gray-600"
+      : "bg-gray-50 focus-within:ring-gray-200"
+  }`}
+>
+  <textarea
+    value={reflection}
+    onChange={(e) =>
+      setReflection(e.target.value)
+    }
+    rows={1}
+    placeholder="今日意識したいみ言など..."
+    onInput={(e) => {
+      e.currentTarget.style.height = "auto";
+      e.currentTarget.style.height =
+        e.currentTarget.scrollHeight + "px";
+    }}
+    className={`w-full resize-none overflow-hidden bg-transparent text-sm leading-7 outline-none placeholder:text-gray-300 ${
+      darkMode
+        ? "text-white"
+        : "text-gray-800"
+    }`}
+  />
+</div>
+  </>
 )}
 
     </section>
@@ -447,6 +496,7 @@ await setDoc(
   ), {
   goal,
   victory,
+  reflection,
   defeat: e.target.value,
   testimony,
   actions,

@@ -60,17 +60,42 @@ const [user, setUser] =
   useState<any>(null);
 
 const [darkMode, setDarkMode] =
-  useState(false);
+  useState(() => {
+    
 
+    if (typeof window !== "undefined") {
+      return (
+        localStorage.getItem("darkMode") ===
+        "true"
+      );
+    }
 
-    const today = new Date().getDate();
+    return false;
+  });
+
+  const [reflection, setReflection] =
+  useState("");
+
+  const todayKey =
+  new Date().toISOString().split("T")[0];
+  
+  const today =
+  new Date().getDate();
 
 const todaysWord =
   dailyWords[today - 1];
+const currentMonth =
+  new Date().toISOString().slice(0, 7);
 
-    const allActions = logs.flatMap(
-  (log) => log.actions || []
+const monthlyLogs = logs.filter(
+  (log) =>
+    log.date?.startsWith(currentMonth)
 );
+
+const allActions =
+  monthlyLogs.flatMap(
+    (log) => log.actions || []
+  );
 
 const completedActions =
   allActions.filter(
@@ -102,7 +127,7 @@ if (achievementRate >= 80) {
     "今日も新しい一歩から";
 }
 
-    useEffect(() => {
+ useEffect(() => {
 
   const unsubscribe =
     onAuthStateChanged(auth, async (currentUser) => {
@@ -133,7 +158,39 @@ if (achievementRate >= 80) {
   return () => unsubscribe();
 
 }, []);
-  return (
+
+useEffect(() => {
+  localStorage.setItem(
+    "darkMode",
+    String(darkMode)
+  );
+}, [darkMode]);
+
+useEffect(() => {
+
+  const savedReflection =
+  localStorage.getItem(
+`reflection-${todayKey}`
+);
+
+  if (savedReflection) {
+    setReflection(savedReflection);
+  }
+
+}, []);
+
+useEffect(() => {
+
+ localStorage.setItem(
+ `reflection-${todayKey}`,
+  reflection
+);
+
+}, [reflection]);
+
+
+return (
+
    <main
   className={`mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-10 transition-all duration-300 ${
     darkMode
@@ -212,8 +269,12 @@ if (achievementRate >= 80) {
       }`}
     >
       <textarea
-        rows={1}
-        placeholder="今日いしきしたみ言など..."
+  value={reflection}
+  onChange={(e) =>
+    setReflection(e.target.value)
+  }
+  rows={1}
+        placeholder="今日意識したいみ言など..."
         onInput={(e) => {
           e.currentTarget.style.height = "auto";
           e.currentTarget.style.height =
@@ -225,6 +286,7 @@ if (achievementRate >= 80) {
             : "text-gray-800"
         }`}
       />
+
     </div>
 
   </div>
