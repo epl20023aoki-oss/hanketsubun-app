@@ -1,4 +1,21 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+import {
+  collection,
+  getDocs,
+} from "firebase/firestore";
+
+import {
+  auth,
+  db,
+} from "./lib/firebase";
+import {
+  onAuthStateChanged,
+} from "firebase/auth";
+
 
 const dailyWords = [
 "大きい事を目標にすればするほど　大きい忍耐が必要なのです。",
@@ -36,48 +53,199 @@ const dailyWords = [
 
 export default function Home() {
 
+  const [logs, setLogs] =
+  useState<any[]>([]);
+
+const [user, setUser] =
+  useState<any>(null);
+
+const [darkMode, setDarkMode] =
+  useState(false);
+
+
     const today = new Date().getDate();
 
 const todaysWord =
-  dailyWords[today - 2];
-  
+  dailyWords[today - 1];
+
+    const allActions = logs.flatMap(
+  (log) => log.actions || []
+);
+
+const completedActions =
+  allActions.filter(
+    (action) => action.checked
+  );
+
+const achievementRate =
+  allActions.length > 0
+    ? Math.round(
+        (completedActions.length /
+          allActions.length) *
+          100
+      )
+    : 0;
+
+    let achievementMessage = "";
+
+if (achievementRate >= 80) {
+  achievementMessage =
+    "よく歩めています";
+} else if (achievementRate >= 50) {
+  achievementMessage =
+    "一歩ずつ進んでいます";
+} else if (achievementRate >= 20) {
+  achievementMessage =
+    "小さな歩みを積み重ねています";
+} else {
+  achievementMessage =
+    "今日も新しい一歩から";
+}
+
+    useEffect(() => {
+
+  const unsubscribe =
+    onAuthStateChanged(auth, async (currentUser) => {
+
+      setUser(currentUser);
+
+      if (!currentUser) return;
+
+      const querySnapshot =
+        await getDocs(
+          collection(
+            db,
+            "users",
+            currentUser.uid,
+            "daily_logs"
+          )
+        );
+
+      const logsData =
+        querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+      setLogs(logsData);
+    });
+
+  return () => unsubscribe();
+
+}, []);
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-10">
-
+   <main
+  className={`mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-10 transition-all duration-300 ${
+    darkMode
+      ? "bg-[#111827] text-white"
+      : "bg-white text-gray-800"
+  }`}
+>
       <header className="space-y-3">
-      
+      <div className="flex items-center justify-between">
 
-        <h1 className="text-4xl font-light tracking-wide">
-          あしあと
-        </h1>
+  <div>
+    <h1 className="text-4xl font-light tracking-wide">
+      あしあと
+    </h1>
 
-        <p className="text-sm text-gray-400">
-          今日の歩みを次に繋げる
-        </p>
-          <section className="mt-10">
-  <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+    <p className="mt-2 text-sm text-gray-400">
+      今日の歩みを次に繋げる
+    </p>
+  </div>
 
-    <p className="text-sm text-gray-400">
+  <button
+    onClick={() =>
+      setDarkMode(!darkMode)
+    }
+    className={`rounded-full px-3 py-1 text-xs transition-all duration-200 ${
+      darkMode
+        ? "bg-gray-700 text-white"
+        : "bg-gray-200 text-gray-700"
+    }`}
+  >
+    {darkMode ? "☀️" : "🌙"}
+  </button>
+
+</div>
+
+
+       
+       <section className="mt-10">
+  <div
+    className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+      darkMode
+        ? "bg-gray-800/80"
+        : "bg-gray-50"
+    }`}
+  >
+
+    <p
+      className={`text-sm ${
+        darkMode
+          ? "text-gray-300"
+          : "text-gray-400"
+      }`}
+    >
       日めくりのみ言
     </p>
 
     <p className="mt-4 text-lg leading-8">
-     {todaysWord}
+      {todaysWord}
     </p>
 
-    <p className="mt-4 text-right text-sm text-gray-400">
+    <p
+      className={`mt-4 text-right text-sm ${
+        darkMode
+          ? "text-gray-300"
+          : "text-gray-400"
+      }`}
+    >
       - 今日のみ言 -
     </p>
+
+    <div
+      className={`mt-6 rounded-2xl p-4 transition-all duration-300 focus-within:ring-2 ${
+        darkMode
+          ? "bg-gray-800/40 focus-within:ring-gray-600"
+          : "bg-gray-50 focus-within:ring-gray-200"
+      }`}
+    >
+      <textarea
+        rows={1}
+        placeholder="今日いしきしたみ言など..."
+        onInput={(e) => {
+          e.currentTarget.style.height = "auto";
+          e.currentTarget.style.height =
+            e.currentTarget.scrollHeight + "px";
+        }}
+        className={`w-full resize-none overflow-hidden bg-transparent text-sm leading-7 outline-none placeholder:text-gray-300 ${
+          darkMode
+            ? "text-white"
+            : "text-gray-800"
+        }`}
+      />
+    </div>
 
   </div>
 </section>
 
 <section className="mt-6">
   <div
-   className="rounded-3xl bg-gray-50 p-6 shadow-sm transition-all duration-300"
+    className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+      darkMode
+        ? "bg-gray-800/80"
+        : "bg-gray-50"
+    }`}
   >
 
-    <p className="text-sm text-gray-400">
+    <p
+      className={`text-sm ${
+        darkMode
+          ? "text-gray-300"
+          : "text-gray-400"
+      }`}
+    >
       今月の目標
     </p>
 
@@ -90,21 +258,30 @@ const todaysWord =
 
 <section className="mt-6">
   <div
-    className="rounded-3xl bg-gray-50 p-6 shadow-sm transition-all duration-300"
+   className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+  darkMode
+    ? "bg-gray-800/80"
+    : "bg-gray-50"
+}`}
   >
 
     <p className="text-sm text-gray-400">
       今月の歩み
     </p>
 
-    <p className="mt-4 text-4xl font-light">
-      12
-    </p>
+   <p className="mt-4 text-4xl font-light">
+  {achievementRate}%
+</p>
 
-    <p className="mt-2 text-sm text-gray-400">
-      日記録しました
-    </p>
+<p className="mt-2 text-sm text-gray-400">
+  アクションを達成しました
+</p>
 
+<p className="mt-4 text-sm leading-7 text-gray-400">
+  {achievementMessage}
+</p>
+
+   
   </div>
 </section>
 
@@ -114,10 +291,21 @@ const todaysWord =
       <section className="mt-10 space-y-4">
 
         <Link
-          href="/journal"
-          className="block rounded-3xl bg-gray-50 p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
-        >
-          <p className="text-sm text-gray-400">
+  href="/journal"
+  className={`block rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
+    darkMode
+      ? "bg-gray-800/80"
+      : "bg-gray-50"
+  }`}
+>
+         <p
+  className={`text-sm ${
+    darkMode
+      ? "text-gray-300"
+      : "text-gray-400"
+  }`}
+>
+
             今日の記録
           </p>
 
