@@ -153,8 +153,8 @@ const docRef = doc(
 
  const savedReflection =
     localStorage.getItem(
-      `reflection-${selectedDate}`
-    );
+  `reflection-${user?.uid}-${selectedDate}`
+);
 
   if (savedReflection) {
     setReflection(savedReflection);
