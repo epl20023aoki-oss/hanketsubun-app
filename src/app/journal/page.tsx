@@ -151,6 +151,10 @@ const docRef = doc(
 
   fetchData();
 
+  console.log(
+     `reflection-${user?.uid}-${selectedDate}` 
+    );
+
  const savedReflection =
     localStorage.getItem(
   `reflection-${user?.uid}-${selectedDate}`

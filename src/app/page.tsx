@@ -244,8 +244,27 @@ useEffect(() => {
 
 }, [reflection]);
 
-useEffect(() => { if (!reflection) return; setSaving(true); console.log( "保存キー", `reflection-${user?.uid}-${todayKey}` ); console.log( "保存内容", reflection ); localStorage.setItem( `reflection-${user?.uid}-${todayKey}`, reflection ); setTimeout(() => { setSaving(false); }, 500); }, [reflection]);
+useEffect(() => { 
 
+  if (!user?.uid) return; 
+
+  if (!reflection) return;
+
+   setSaving(true); 
+
+   console.log( 
+    `reflection-${user?.uid}-${todayKey}` 
+  );
+
+   localStorage.setItem( 
+    `reflection-${user.uid}-${todayKey}`, 
+    reflection 
+  );
+  
+  setTimeout(() => { 
+    setSaving(false);
+   }, 500);
+   }, [reflection, user]);
 
 return (
 
