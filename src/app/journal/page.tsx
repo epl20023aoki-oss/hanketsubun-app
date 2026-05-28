@@ -126,7 +126,7 @@ const docRef = doc(
       setGoal(data.goal || "");
       setVictory(data.victory || "");
       setDefeat(data.defeat || "");
-      setTestimony(data.testimony || ""); const savedReflection = localStorage.getItem( `reflection-${selectedDate}` ); setReflection( savedReflection || data.reflection || "" );
+      setTestimony(data.testimony || ""); const savedReflection = localStorage.getItem( `reflection-${user?.uid}-${selectedDate}` ); setReflection( savedReflection || data.reflection || "" );
 
       setActions(
         data.actions || [

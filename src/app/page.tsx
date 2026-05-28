@@ -218,7 +218,7 @@ useEffect(() => {
 
   const savedReflection =
     localStorage.getItem(
-      `reflection-${todayKey}`
+     `reflection-${user?.uid}-${todayKey}`
     );
 
   if (savedReflection) {
@@ -244,7 +244,7 @@ useEffect(() => {
 
 }, [reflection]);
 
-useEffect(() => { if (!reflection) return; setSaving(true); console.log( "保存キー", `reflection-${todayKey}` ); console.log( "保存内容", reflection ); localStorage.setItem( `reflection-${user?.uid}-${todayKey}`, reflection ); setTimeout(() => { setSaving(false); }, 500); }, [reflection]);
+useEffect(() => { if (!reflection) return; setSaving(true); console.log( "保存キー", `reflection-${user?.uid}-${todayKey}` ); console.log( "保存内容", reflection ); localStorage.setItem( `reflection-${user?.uid}-${todayKey}`, reflection ); setTimeout(() => { setSaving(false); }, 500); }, [reflection]);
 
 
 return (
