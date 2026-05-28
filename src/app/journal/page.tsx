@@ -243,16 +243,33 @@ return (
 >
 
     <div className="flex items-center justify-between">
-    <Link
-  href="/"
-  className={`text-sm ${
-    darkMode
-      ? "text-gray-200"
-      : "text-gray-500"
-  }`}
->
-  ← ホーム
-</Link>
+      
+<div className="flex flex-col">
+
+  <Link
+    href="/"
+    className={`text-sm ${
+      darkMode
+        ? "text-gray-200"
+        : "text-gray-500"
+    }`}
+  >
+    ← ホーム
+  </Link>
+
+  <span
+    className={`mt-1 text-xs ${
+      darkMode
+        ? "text-gray-400"
+        : "text-gray-400"
+    }`}
+  >
+    {saving
+      ? "☁ 保存中..."
+      : "✓ 保存済み"}
+  </span>
+
+</div>
 
       <h1 className="text-sm font-medium">
         5月の振り返り

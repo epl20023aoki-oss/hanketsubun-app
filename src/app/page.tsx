@@ -10,6 +10,8 @@ import {
 import {
   collection,
   getDocs,
+  setDoc, 
+  doc,
 } from "firebase/firestore";
 
 import {
@@ -249,27 +251,49 @@ useEffect(() => {
 
 }, [reflection]);
 
-useEffect(() => { 
+useEffect(() => {
 
-  if (!user?.uid) return; 
+  if (!user?.uid) return;
 
   if (!reflection) return;
 
-   setSaving(true); 
+  const saveReflection =
+    async () => {
 
-   console.log( 
-    `reflection-${user?.uid}-${todayKey}` 
-  );
+      setSaving(true);
 
-   localStorage.setItem( 
-    `reflection-${user.uid}-${todayKey}`, 
-    reflection 
-  );
-  
-  setTimeout(() => { 
-    setSaving(false);
-   }, 500);
-   }, [reflection, user]);
+      console.log(
+        `reflection-${user?.uid}-${todayKey}`
+      );
+
+      localStorage.setItem(
+        `reflection-${user.uid}-${todayKey}`,
+        reflection
+      );
+
+      await setDoc(
+        doc(
+          db,
+          "users",
+          user.uid,
+          "daily_logs",
+          todayKey
+        ),
+        {
+          reflection,
+          updatedAt: new Date(),
+        },
+        { merge: true }
+      );
+
+      setTimeout(() => {
+        setSaving(false);
+      }, 500);
+    };
+
+  saveReflection();
+
+}, [reflection, user]);
 
 return (
 
