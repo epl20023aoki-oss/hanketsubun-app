@@ -162,17 +162,20 @@ const logout = async () => {
 };
 
 useEffect(() => {
-  const unsubscribe = onAuthStateChanged(
-    auth,
+   const unsubscribe = 
+   onAuthStateChanged( 
+    auth, 
     (currentUser) => {
-      console.log("認証状態", currentUser);
-
+      
       setUser(currentUser);
-    }
-  );
+      
+      if (!currentUser) { setReflection("");
 
-  return () => unsubscribe();
-}, []);
+       }
+      } 
+    ); return () => unsubscribe();
+  
+  }, []);
 
 
  useEffect(() => {
@@ -216,16 +219,18 @@ useEffect(() => {
 
 useEffect(() => {
 
+  if (!user?.uid) return;
+
   const savedReflection =
     localStorage.getItem(
-     `reflection-${user?.uid}-${todayKey}`
+      `reflection-${user.uid}-${todayKey}`
     );
 
   if (savedReflection) {
     setReflection(savedReflection);
   }
 
-}, []);
+}, [user]);
 
 
 
