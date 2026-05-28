@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  useRef,
+} from "react";
 import { db, auth } from "../lib/firebase";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
@@ -9,8 +13,8 @@ import Link from "next/link";
 
 import {
   GoogleAuthProvider,
-  signInWithPopup,
   onAuthStateChanged,
+  signInWithPopup,
   signOut,
 } from "firebase/auth";
 
@@ -42,7 +46,32 @@ const [darkMode, setDarkMode] =
   useState(false);
 const [logs, setLogs] = useState<any[]>([]);
 
-const [user, setUser] = useState<any>(null);
+
+const [user, setUser] =
+  useState<any>(null);
+
+useEffect(() => {
+
+  const unsubscribe =
+    onAuthStateChanged(
+      auth,
+      (currentUser) => {
+
+        console.log(
+          "認証状態",
+          currentUser
+        );
+
+        setUser(currentUser);
+      }
+    );
+
+  return () => unsubscribe();
+
+}, []);
+
+const reflectionRef =
+  useRef<HTMLTextAreaElement>(null);
 
 const [selectedTags, setSelectedTags] =
   useState<string[]>([]);
@@ -69,7 +98,11 @@ const [selectedTags, setSelectedTags] =
 
   const [saving, setSaving] = useState(false);
   const [selectedDate, setSelectedDate] =
-  useState(today);
+  useState(
+    new Date()
+      .toISOString()
+      .split("T")[0]
+  );
 
  useEffect(() => {
     if (!user) return;
@@ -93,7 +126,7 @@ const docRef = doc(
       setGoal(data.goal || "");
       setVictory(data.victory || "");
       setDefeat(data.defeat || "");
-      setTestimony(data.testimony || "");
+      setTestimony(data.testimony || ""); const savedReflection = localStorage.getItem( `reflection-${selectedDate}` ); setReflection( savedReflection || data.reflection || "" );
 
       setActions(
         data.actions || [
@@ -118,7 +151,14 @@ const docRef = doc(
 
   fetchData();
 
- 
+ const savedReflection =
+    localStorage.getItem(
+      `reflection-${selectedDate}`
+    );
+
+  if (savedReflection) {
+    setReflection(savedReflection);
+  }
 
   fetchLogs();
 }, [selectedDate, user]);
@@ -146,51 +186,6 @@ setFilterTag("");
   setSelectedDate(newDate);
 };
 
-useEffect(() => {
-  const unsubscribe = onAuthStateChanged(
-    auth,
-    (currentUser) => {
-      console.log("認証状態", currentUser);
-
-      setUser(currentUser);
-    }
-  );
-
-  return () => unsubscribe();
-}, []);
-
-const login = async () => {
-  try {
-    const provider = new GoogleAuthProvider();
-
-    const result = await signInWithPopup(
-      auth,
-      provider
-    );
-
-    console.log(result.user);
-  } catch (error) {
-    console.log("ログインエラー", error);
-  }
-};
-
-useEffect(() => {
-
-  const savedReflection =
-    localStorage.getItem(
-      "reflection"
-    );
-
-  if (savedReflection) {
-    setReflection(savedReflection);
-  }
-
-}, []);
-
-const logout = async () => {
-  await signOut(auth);
-};
-
 const tags = [
 "重要",
 "証",
@@ -202,18 +197,18 @@ const tags = [
 
 useEffect(() => {
 
-  const savedReflection =
-    localStorage.getItem(
-      `reflection-${selectedDate}`
-    );
+  const textarea =
+    reflectionRef.current;
 
-  if (savedReflection) {
-    setReflection(savedReflection);
-  } else {
-    setReflection("");
-  }
+  if (!textarea) return;
 
-}, [selectedDate]);
+  textarea.style.height =
+    "auto";
+
+  textarea.style.height =
+    textarea.scrollHeight + "px";
+
+}, [reflection]);
 
 return (
   <main
@@ -277,44 +272,6 @@ return (
   }`}
 >
 
-      <div className="flex items-center gap-3">
-        <span>
-          {saving
-            ? "☁ 保存中..."
-            : "✓ 保存済み"}
-        </span>
-
-      </div>
-
-      <div className="flex items-center gap-3">
-
-        <p
-  className={`${
-    darkMode
-      ? "text-gray-200"
-      : "text-gray-500"
-  }`}
->
-  {user?.displayName}
-</p>
-
-        {user ? (
-          <button
-            onClick={logout}
-            className="rounded-full bg-red-500 px-3 py-1 text-xs rounded-full text-white"
-          >
-            ログアウト
-          </button>
-        ) : (
-          <button
-            onClick={login}
-            className="rounded-full bg-[#111827] px-3 py-1 text-xs rounded-full text-white"
-          >
-            Googleログイン
-          </button>
-        )}
-
-      </div>
 
     </div>
 
@@ -362,19 +319,27 @@ return (
 
     setSaving(true);
 
-    if (!user?.uid) return;
+    setSaving(true);
+
+console.log(
+  "保存開始",
+  user
+);
+
+    if (!auth.currentUser?.uid) return;
 
     try {
-      await setDoc(
-        doc(
-          db,
-          "users",
-          user.uid,
-          "daily_logs",
-          selectedDate
-        ),
+       await setDoc(
+    doc(
+      db,
+      "users",
+      auth.currentUser.uid,
+      "daily_logs",
+      selectedDate
+    ),
         {
           goal: e.target.value,
+          reflection,
           victory,
           defeat,
           testimony,
@@ -420,17 +385,18 @@ return (
   }`}
 >
   <textarea
+  ref={reflectionRef}
     value={reflection}
     onChange={(e) =>
       setReflection(e.target.value)
     }
-    rows={1}
     placeholder="今日意識したいみ言など..."
     onInput={(e) => {
       e.currentTarget.style.height = "auto";
       e.currentTarget.style.height =
         e.currentTarget.scrollHeight + "px";
     }}
+    
     className={`w-full resize-none overflow-hidden bg-transparent text-sm leading-7 outline-none placeholder:text-gray-300 ${
       darkMode
         ? "text-white"
@@ -443,113 +409,125 @@ return (
 
     </section>
 
-    {/* アクションプラン */}
-    <section className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">
-          今日のアクションプラン
-        </h3>
+{/* アクションプラン */}
+<section className="space-y-4">
+  <div className="flex items-center justify-between">
+    <h3 className="text-lg font-medium">
+      今日のアクションプラン
+    </h3>
 
-       <button
-  className="text-sm text-gray-400"
-  onClick={() => {
-    setActions([
-      ...actions,
-      { text: "", checked: false },
-    ]);
-  }}
->
-  ＋追加
-</button>
-      </div>
-
-    <div
- className={`space-y-3 rounded-2xl p-5 shadow-sm placeholder:text-gray-400 transition-all duration-300 focus-within:ring-2 ${
-  darkMode
-    ? "bg-gray-800/80 focus-within:ring-gray-600"
-    : "bg-gray-50 focus-within:ring-gray-300"
-}`}
->
-  {actions.map((action, index) => (
-    <label
-      key={index}
-      className="flex items-center gap-3"
+    <button
+      className="text-sm text-gray-400"
+      onClick={() => {
+        setActions([
+          ...actions,
+          { text: "", checked: false },
+        ]);
+      }}
     >
-      <input
-        type="checkbox"
-        checked={action.checked}
-       onChange={async (e) => {
-          const updated = [...actions];
+      ＋追加
+    </button>
+  </div>
 
-          updated[index].checked =
-            !updated[index].checked;
+  <div
+    className={`space-y-3 rounded-2xl p-5 shadow-sm placeholder:text-gray-400 transition-all duration-300 focus-within:ring-2 ${
+      darkMode
+        ? "bg-gray-800/80 focus-within:ring-gray-600"
+        : "bg-gray-50 focus-within:ring-gray-300"
+    }`}
+  >
+    {actions.map((action, index) => (
+      <label
+        key={index}
+        className="flex items-center gap-3"
+      >
+        <input
+          type="checkbox"
+          checked={action.checked}
+          onChange={async () => {
 
-          if (!user) return;
+            const updated = [...actions];
 
-await setDoc(
-  doc(
-    db,
-    "users",
-    user.uid,
-    "daily_logs",
-    selectedDate
-  ), {
-  goal,
-  victory,
-  reflection,
-  defeat: e.target.value,
-  testimony,
-  actions,
-  tags: selectedTags,
-  date: selectedDate,
-  updatedAt: new Date(),
-});
+            updated[index].checked =
+              !updated[index].checked;
 
-fetchLogs();
+            setActions(updated);
 
-        }}
-      />
+            if (!user) return;
 
-      <input
-        value={action.text}
-       onChange={async (e) => {
-          const updated = [...actions];
+            await setDoc(
+              doc(
+                db,
+                "users",
+                user.uid,
+                "daily_logs",
+                selectedDate
+              ),
+              {
+                goal,
+                reflection,
+                victory,
+                defeat,
+                testimony,
+                actions: updated,
+                tags: selectedTags,
+                date: selectedDate,
+                updatedAt: new Date(),
+              }
+            );
 
-          updated[index].text = e.target.value;
+            fetchLogs();
+          }}
+        />
 
-          setActions(updated);
+        <input
+          value={action.text}
+          onChange={async (e) => {
 
-  setSaving(true); 
+            const updated = [...actions];
 
-          if (!user) return;
+            updated[index].text =
+              e.target.value;
 
-await setDoc(
-  doc(
-    db,
-    "users",
-    user.uid,
-    "daily_logs",
-    selectedDate
-  ), {
-  goal,
-  victory,
-  defeat: e.target.value,
-  testimony,
-  actions,
-  tags: selectedTags,
-  date: selectedDate,
-  updatedAt: new Date(),
-});
+            setActions(updated);
 
-fetchLogs();
+            setSaving(true);
 
-        }}
-        className="w-full bg-transparent outline-none"
-        placeholder="アクションを入力"
-      />
-    </label>
-  ))}
-</div>
+            if (!user) return;
+
+            await setDoc(
+              doc(
+                db,
+                "users",
+                user.uid,
+                "daily_logs",
+                selectedDate
+              ),
+              {
+                goal,
+                reflection,
+                victory,
+                defeat,
+                testimony,
+                actions: updated,
+                tags: selectedTags,
+                date: selectedDate,
+                updatedAt: new Date(),
+              }
+            );
+
+            fetchLogs();
+
+            setTimeout(() => {
+              setSaving(false);
+            }, 1000);
+          }}
+          className="w-full bg-transparent outline-none"
+          placeholder="アクションを入力"
+        />
+      </label>
+    ))}
+  </div>
     </section>
 
     {/* 勝利点 */}
@@ -576,8 +554,8 @@ await setDoc(
     selectedDate
   ), {
   goal,
-  victory,
-  defeat: e.target.value,
+  victory: e.target.value,
+  defeat,
   testimony,
   actions,
   tags: selectedTags,
@@ -674,8 +652,8 @@ await setDoc(
   ), {
   goal,
   victory,
-  defeat: e.target.value,
-  testimony,
+  defeat,
+  testimony: e.target.value,
   actions,
   tags: selectedTags,
   date: selectedDate,
@@ -769,6 +747,8 @@ await setDoc(
 
        <section className="space-y-4">
  <Calendar
+  locale="ja-JP"
+
   className={
     darkMode
       ? "dark-calendar"

@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+  useRef,
+} from "react";
 
 import {
   collection,
@@ -12,8 +16,13 @@ import {
   auth,
   db,
 } from "./lib/firebase";
-import {
-  onAuthStateChanged,
+
+
+import { 
+  onAuthStateChanged, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  signOut, 
 } from "firebase/auth";
 
 
@@ -56,8 +65,14 @@ export default function Home() {
   const [logs, setLogs] =
   useState<any[]>([]);
 
+  const [saving, setSaving] =
+  useState(false);
+
 const [user, setUser] =
   useState<any>(null);
+
+  const reflectionRef =
+  useRef<HTMLTextAreaElement>(null);
 
 const [darkMode, setDarkMode] =
   useState(() => {
@@ -127,6 +142,39 @@ if (achievementRate >= 80) {
     "今日も新しい一歩から";
 }
 
+const login = async () => {
+  try {
+    const provider = new GoogleAuthProvider();
+
+    const result = await signInWithPopup(
+      auth,
+      provider
+    );
+
+    console.log(result.user);
+  } catch (error) {
+    console.log("ログインエラー", error);
+  }
+};
+
+const logout = async () => {
+  await signOut(auth);
+};
+
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(
+    auth,
+    (currentUser) => {
+      console.log("認証状態", currentUser);
+
+      setUser(currentUser);
+    }
+  );
+
+  return () => unsubscribe();
+}, []);
+
+
  useEffect(() => {
 
   const unsubscribe =
@@ -169,9 +217,9 @@ useEffect(() => {
 useEffect(() => {
 
   const savedReflection =
-  localStorage.getItem(
-`reflection-${todayKey}`
-);
+    localStorage.getItem(
+      `reflection-${todayKey}`
+    );
 
   if (savedReflection) {
     setReflection(savedReflection);
@@ -179,14 +227,24 @@ useEffect(() => {
 
 }, []);
 
+
+
 useEffect(() => {
 
- localStorage.setItem(
- `reflection-${todayKey}`,
-  reflection
-);
+  const textarea =
+    reflectionRef.current;
+
+  if (!textarea) return;
+
+  textarea.style.height =
+    "auto";
+
+  textarea.style.height =
+    textarea.scrollHeight + "px";
 
 }, [reflection]);
+
+useEffect(() => { if (!reflection) return; setSaving(true); console.log( "保存キー", `reflection-${todayKey}` ); console.log( "保存内容", reflection ); localStorage.setItem( `reflection-${todayKey}`, reflection ); setTimeout(() => { setSaving(false); }, 500); }, [reflection]);
 
 
 return (
@@ -198,36 +256,97 @@ return (
       : "bg-white text-gray-800"
   }`}
 >
-      <header className="space-y-3">
-      <div className="flex items-center justify-between">
 
-  <div>
-    <h1 className="text-4xl font-light tracking-wide">
-      あしあと
-    </h1>
+{/* 上部バー */}
+<header
+  className={`sticky top-0 z-10 border-b backdrop-blur transition-all ${
+    darkMode
+      ? "border-gray-800 bg-gray-900/80"
+      : "border-gray-200 bg-white/80"
+  }`}
+>
 
-    <p className="mt-2 text-sm text-gray-400">
-      今日の歩みを次に繋げる
-    </p>
+  <div className="flex items-center justify-between">
+
+    <div>
+      <h1 className="text-2xl font-light tracking-wide">
+        あしあと
+      </h1>
+
+      <p
+        className={`text-xs ${
+          darkMode
+            ? "text-gray-400"
+            : "text-gray-500"
+        }`}
+      >
+        今日の歩みを次に繋げる
+      </p>
+    </div>
+
+    <button
+      onClick={() =>
+        setDarkMode(!darkMode)
+      }
+      className="rounded-full bg-gray-200 px-3 py-1 text-xs"
+    >
+      {darkMode ? "☀️" : "🌙"}
+    </button>
+
   </div>
 
-  <button
-    onClick={() =>
-      setDarkMode(!darkMode)
-    }
-    className={`rounded-full px-3 py-1 text-xs transition-all duration-200 ${
+  <div
+    className={`mt-3 flex items-center justify-between text-xs ${
       darkMode
-        ? "bg-gray-700 text-white"
-        : "bg-gray-200 text-gray-700"
+        ? "text-gray-200"
+        : "text-gray-400"
     }`}
   >
-    {darkMode ? "☀️" : "🌙"}
-  </button>
 
-</div>
+    <span>
+      {saving
+        ? "☁ 保存中..."
+        : "✓ 保存済み"}
+    </span>
 
+    <div className="flex items-center gap-3">
 
-       
+      <p
+        className={`${
+          darkMode
+            ? "text-gray-200"
+            : "text-gray-500"
+        }`}
+      >
+        {user?.displayName}
+      </p>
+
+      {user ? (
+        <button
+          onClick={logout}
+          className="rounded-full bg-red-500 px-3 py-1 text-white"
+        >
+          ログアウト
+        </button>
+      ) : (
+        <button
+          onClick={login}
+          className={`rounded-full px-3 py-1 text-white ${
+            darkMode
+              ? "bg-white text-black"
+              : "bg-[#111827]"
+          }`}
+        >
+          Googleログイン
+        </button>
+      )}
+
+    </div>
+
+  </div>
+
+</header>
+
        <section className="mt-10">
   <div
     className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
@@ -268,7 +387,8 @@ return (
           : "bg-gray-50 focus-within:ring-gray-200"
       }`}
     >
-      <textarea
+ <textarea
+  ref={reflectionRef}
   value={reflection}
   onChange={(e) =>
     setReflection(e.target.value)
@@ -348,7 +468,7 @@ return (
 </section>
 
 
-      </header>
+     
 
       <section className="mt-10 space-y-4">
 
