@@ -33,6 +33,7 @@ const today = new Date()
 
  const [showCalendar, setShowCalendar] =
   useState(false);
+
 const [goal, setGoal] = useState("");
 const [victory, setVictory] = useState("");
 const [defeat, setDefeat] = useState("");
@@ -47,7 +48,12 @@ const [actions, setActions] = useState([
 const [darkMode, setDarkMode] =
   useState(false);
 const [logs, setLogs] = useState<any[]>([]);
+const recordedDates = logs.map(
+  (log) => log.id
+);
 
+const recordedDateSet =
+  new Set(recordedDates);
 
 const [user, setUser] =
   useState<any>(null);
@@ -128,7 +134,11 @@ const docRef = doc(
       setGoal(data.goal || "");
       setVictory(data.victory || "");
       setDefeat(data.defeat || "");
-      setTestimony(data.testimony || ""); const savedReflection = localStorage.getItem( `reflection-${user?.uid}-${selectedDate}` ); setReflection( savedReflection || data.reflection || "" );
+      setTestimony(data.testimony || ""); 
+      
+      const savedReflection = localStorage.getItem(
+         `reflection-${user?.uid}-${selectedDate}` 
+        ); setReflection( savedReflection || data.reflection || "" );
 
       setActions(
         data.actions || [
@@ -335,27 +345,33 @@ return (
 
   </div>
 
-  {showCalendar && (
-    <div className="mb-4">
-      <Calendar
-        onChange={(value) => {
+{showCalendar && (
+  <div className="mb-4">
+    <Calendar
+      onChange={(value) => {
+        const date =
+          new Date(value as Date)
+            .toLocaleDateString("sv-SE");
 
-          const date =
-            new Date(value as Date)
-              .toLocaleDateString(
-                "sv-SE"
-              );
+        setSelectedDate(date);
+        setShowCalendar(false);
+      }}
+      value={new Date(selectedDate)}
+      tileContent={({ date, view }) => {
+        if (view !== "month") return null;
 
-          setSelectedDate(date);
+        const dateString =
+          date.toLocaleDateString("sv-SE");
 
-          setShowCalendar(false);
-        }}
-        value={
-          new Date(selectedDate)
-        }
-      />
-    </div>
-  )}
+        return recordedDateSet.has(dateString) ? (
+          <div className="text-center text-green-500 text-xs">
+            ●
+          </div>
+        ) : null;
+      }}
+    />
+  </div>
+)}
 
 </section>
 
@@ -801,75 +817,86 @@ await setDoc(
       />
     </section>
 
-    <section className="space-y-4">
-
-<div className="flex flex-wrap gap-2">
-  {tags.map((tag) => (
-    <button
-      key={tag}
-      onClick={() =>
-        setFilterTag(tag)
-      }
-      className={`rounded-full px-4 py-2 text-sm ${
-        filterTag === tag
-          ? "bg-gray-800/80 text-white"
-          : "bg-gray-100 text-gray-600"
-      }`}
-    >
-      #{tag}
-    </button>
-  ))}
-
-  <button
-    onClick={() => setFilterTag("")}
-    className="rounded-full bg-red-100 px-4 py-2 text-sm"
-  >
-    解除
-  </button>
-</div>
+ 
+<section className="space-y-4">
 
   <h3 className="text-lg font-medium">
-    
     過去の記録
   </h3>
 
-  <div className="space-y-2">
-  {logs
-  .filter((log) => {
-    if (!filterTag) return true;
+  <p
+    className={`text-sm ${
+      darkMode
+        ? "text-gray-400"
+        : "text-gray-500"
+    }`}
+  >
+    タグで絞り込んで過去の歩みを振り返る
+  </p>
 
-    return log.tags?.includes(filterTag);
-  })
-  .sort(
-    (a, b) =>
-      new Date(b.date).getTime() -
-      new Date(a.date).getTime()
-  )
-  .slice(0, 7)
-  .map((log) => (
-
-      <div
-  key={log.id}
-  onClick={() => {
-    setSelectedDate(log.id);
-  }}
-        className={`cursor-pointer rounded-2xl p-4 shadow-sm transition-all duration-200 hover:bg-gray-100 hover:-translate-y-0.5 placeholder:text-gray-400 ${
-  darkMode
-    ? "bg-gray-800/80 text-white"
-    : "bg-gray-50 text-gray-800"
-}`}
-
+  <div className="flex flex-wrap gap-2">
+    {tags.map((tag) => (
+      <button
+        key={tag}
+        onClick={() =>
+          setFilterTag(tag)
+        }
+        className={`rounded-full px-4 py-2 text-sm ${
+          filterTag === tag
+            ? "bg-gray-800/80 text-white"
+            : "bg-gray-100 text-gray-600"
+        }`}
       >
-        <p className="text-sm text-gray-400">
-          {log.date}
-        </p>
-
-        <p className="mt-1 line-clamp-2">
-          {log.goal}
-        </p>
-      </div>
+        #{tag}
+      </button>
     ))}
+
+    <button
+      onClick={() => setFilterTag("")}
+      className="rounded-full bg-red-100 px-4 py-2 text-sm"
+    >
+      解除
+    </button>
   </div>
+
+  <div className="space-y-2">
+    {logs
+      .filter((log) => {
+        if (!filterTag) return true;
+
+        return log.tags?.includes(
+          filterTag
+        );
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.date).getTime() -
+          new Date(a.date).getTime()
+      )
+      .slice(0, 7)
+      .map((log) => (
+        <div
+          key={log.id}
+          onClick={() => {
+            setSelectedDate(log.id);
+          }}
+          className={`cursor-pointer rounded-2xl p-4 shadow-sm transition-all duration-200 hover:bg-gray-100 hover:-translate-y-0.5 ${
+            darkMode
+              ? "bg-gray-800/80 text-white"
+              : "bg-gray-50 text-gray-800"
+          }`}
+        >
+          <p className="text-sm text-gray-400">
+            {log.date}
+          </p>
+
+          <p className="mt-1 line-clamp-2">
+            {log.goal}
+          </p>
+        </div>
+      ))}
+  </div>
+
 </section>
 
   </div>
