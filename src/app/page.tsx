@@ -10,6 +10,7 @@ import {
 import {
   collection,
   getDocs,
+  getDoc,
   setDoc, 
   doc,
 } from "firebase/firestore";
@@ -223,14 +224,32 @@ useEffect(() => {
 
   if (!user?.uid) return;
 
-  const savedReflection =
-    localStorage.getItem(
-      `reflection-${user.uid}-${todayKey}`
-    );
+  const fetchReflection =
+    async () => {
 
-  if (savedReflection) {
-    setReflection(savedReflection);
-  }
+      const docRef = doc(
+        db,
+        "users",
+        user.uid,
+        "daily_logs",
+        todayKey
+      );
+
+      const docSnap =
+        await getDoc(docRef);
+
+      if (docSnap.exists()) {
+
+        const data =
+          docSnap.data();
+
+        setReflection(
+          data.reflection || ""
+        );
+      }
+    };
+
+  fetchReflection();
 
 }, [user]);
 

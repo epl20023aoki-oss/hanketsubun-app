@@ -31,6 +31,8 @@ export default function Home() {
 const today = new Date()
  .toLocaleDateString("sv-SE")
 
+ const [showCalendar, setShowCalendar] =
+  useState(false);
 const [goal, setGoal] = useState("");
 const [victory, setVictory] = useState("");
 const [defeat, setDefeat] = useState("");
@@ -300,31 +302,66 @@ return (
 
   {/* 本文 */}
   <div className="mx-auto flex max-w-2xl flex-col gap-8 px-5 py-8">
-    {/* 日付 */}
-    <section>
-     <div className="mb-2 flex items-center gap-4 text-sm text-gray-400">
-  <button
-    onClick={() => changeDate(-1)}
-    className="rounded-full px-2 py-1 hover:bg-gray-100"
-  >
-    
-    ◀
-  </button>
 
-  <p>{selectedDate}</p>
+{/* 日付 */}
+<section>
 
-  <button
-    onClick={() => changeDate(1)}
-    className="rounded-full px-2 py-1 hover:bg-gray-100"
-  >
-    ▶
-  </button>
-</div>
+  <div className="mb-2 flex items-center gap-4 text-sm text-gray-400">
+
+    <button
+      onClick={() => changeDate(-1)}
+      className="rounded-full px-2 py-1 hover:bg-gray-100"
+    >
+      ◀
+    </button>
+
+    <button
+      onClick={() =>
+        setShowCalendar(
+          !showCalendar
+        )
+      }
+      className="rounded-full px-3 py-1 hover:bg-gray-100"
+    >
+      📅 {selectedDate}
+    </button>
+
+    <button
+      onClick={() => changeDate(1)}
+      className="rounded-full px-2 py-1 hover:bg-gray-100"
+    >
+      ▶
+    </button>
+
+  </div>
+
+  {showCalendar && (
+    <div className="mb-4">
+      <Calendar
+        onChange={(value) => {
+
+          const date =
+            new Date(value as Date)
+              .toLocaleDateString(
+                "sv-SE"
+              );
+
+          setSelectedDate(date);
+
+          setShowCalendar(false);
+        }}
+        value={
+          new Date(selectedDate)
+        }
+      />
+    </div>
+  )}
+
+</section>
 
       <h2 className="text-3xl font-light tracking-wide">
         今日の振り返り
       </h2>
-    </section>
 
     {/* 今日の目標 */}
     <section className="space-y-6">
@@ -765,43 +802,6 @@ await setDoc(
     </section>
 
     <section className="space-y-4">
-
-       <section className="space-y-4">
- <Calendar
-  locale="ja-JP"
-
-  className={
-    darkMode
-      ? "dark-calendar"
-      : ""
-  }
-    onChange={(date) => {
-      const selected = new Date(date as Date)
-        .toLocaleDateString("sv-SE")
-
-        setFilterTag("");
-
-      setSelectedDate(selected);
-    }}
-    value={new Date(selectedDate)}
-    tileContent={({ date, view }) => {
-  if (view !== "month") return null;
-
- const formatted =
-  date.toLocaleDateString("sv-SE");
-
-  const hasLog = logs.some(
-    (log) => log.date === formatted
-  );
-
-  return hasLog ? (
-    <div className="flex justify-center">
-      <div className="mt-1 h-2 w-2 rounded-fullbg-gray-800" />
-    </div>
-  ) : null;
-}}
-  />
-</section>
 
 <div className="flex flex-wrap gap-2">
   {tags.map((tag) => (
