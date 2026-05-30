@@ -73,6 +73,10 @@ export default function Home() {
 
 const [user, setUser] =
   useState<any>(null);
+  
+const [name, setName] = useState("");
+const [team, setTeam] = useState("");
+
 
   const reflectionRef =
   useRef<HTMLTextAreaElement>(null);
@@ -212,6 +216,30 @@ useEffect(() => {
   return () => unsubscribe();
 
 }, []);
+
+useEffect(() => {
+  if (!user) return;
+
+  const fetchProfile = async () => {
+    const docSnap = await getDoc(
+      doc(
+        db,
+        "users",
+        user.uid
+      )
+    );
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+
+      setName(data.name || "");
+      setTeam(data.team || "");
+    }
+  };
+
+  fetchProfile();
+}, [user]);
+
 
 useEffect(() => {
   localStorage.setItem(
@@ -479,6 +507,36 @@ return (
   </div>
 </section>
 
+{/* プロフィール */}
+<section className="mt-6">
+<Link href="/profile">
+  <div
+    className={`rounded-3xl p-6 shadow-sm transition-all duration-300 cursor-pointer ${
+      darkMode
+        ? "bg-gray-800/80"
+        : "bg-gray-50"
+    }`}
+  >
+    <p className="text-sm text-gray-400">
+      プロフィール
+    </p>
+
+    <p className="mt-2 text-lg font-medium">
+      {name || "プロフィール未設定"}
+    </p>
+
+    <p className="mt-1 text-sm text-gray-400">
+      {team}
+    </p>
+
+    <p className="mt-4 text-xs text-gray-400">
+      編集 →
+    </p>
+  </div>
+</Link>
+</section>
+
+{/* 今月の目標 */}
 <section className="mt-6">
   <div
     className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
@@ -495,6 +553,8 @@ return (
           : "text-gray-400"
       }`}
     >
+
+
       今月の目標
     </p>
 
