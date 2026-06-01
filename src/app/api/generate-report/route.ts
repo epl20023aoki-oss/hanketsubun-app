@@ -15,15 +15,30 @@ export async function POST(
     testimonies,
   } = await request.json();
 
-  try {
+ console.log(
+  "GEMINI KEY:",
+  process.env.GEMINI_API_KEY?.slice(0, 15)
+);
 
-const model =
-  genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-  });
+console.log(
+  "FULL LENGTH",
+  process.env.GEMINI_API_KEY?.length
+);
 
-    const result =
-  await model.generateContent(`
+try {
+
+  console.log(
+    "KEY LENGTH:",
+    process.env.GEMINI_API_KEY?.length
+  );
+
+  const model =
+    genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+    });
+
+  const result =
+    await model.generateContent(`
 
 あなたは月末レポート作成アシスタントです。
 
@@ -73,6 +88,12 @@ const cleaned =
     .replace(/```json/g, "")
     .replace(/```/g, "")
     .trim();
+
+console.log("RAW RESPONSE");
+console.log(text);
+
+console.log("CLEANED RESPONSE");
+console.log(cleaned);
 
 const parsed =
   JSON.parse(cleaned);
