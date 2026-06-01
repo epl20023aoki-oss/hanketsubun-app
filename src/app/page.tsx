@@ -77,6 +77,8 @@ const [user, setUser] =
 const [name, setName] = useState("");
 const [team, setTeam] = useState("");
 
+const [latestGoal, setLatestGoal] =
+  useState<any>(null);
 
   const reflectionRef =
   useRef<HTMLTextAreaElement>(null);
@@ -238,6 +240,42 @@ useEffect(() => {
   };
 
   fetchProfile();
+}, [user]);
+
+useEffect(() => {
+  if (!user) return;
+
+  const fetchLatestGoal = async () => {
+
+    const snapshot = await getDocs(
+      collection(
+        db,
+        "users",
+        user.uid,
+        "monthly_goals"
+      )
+    );
+
+    const goals = snapshot.docs.map(
+      (doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })
+    );
+
+    goals.sort((a: any, b: any) =>
+      b.id.localeCompare(a.id)
+    );
+
+    setLatestGoal(
+      goals.length > 0
+        ? goals[0]
+        : null
+    );
+  };
+
+  fetchLatestGoal();
+
 }, [user]);
 
 
@@ -537,14 +575,15 @@ return (
 </section>
 
 {/* 今月の目標 */}
-<section className="mt-6">
-  <div
-    className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
-      darkMode
-        ? "bg-gray-800/80"
-        : "bg-gray-50"
-    }`}
-  >
+<Link href="/monthly-goals">
+  <section className="mt-6">
+    <div
+      className={`cursor-pointer rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+        darkMode
+          ? "bg-gray-800/80"
+          : "bg-gray-50"
+      }`}
+    >
 
     <p
       className={`text-sm ${
@@ -558,12 +597,53 @@ return (
       今月の目標
     </p>
 
-    <p className="mt-4 text-lg leading-8">
-      小さな感謝を言葉にする
+   <div className="mt-4">
+
+  {latestGoal ? (
+    <>
+      <p className="text-lg font-medium">
+        {latestGoal.month
+          ?.replace("-", "年")
+          .concat("月")}
+      </p>
+
+      <p className="mt-4 text-sm text-gray-400">
+        内的目標
+      </p>
+
+      <p className="mt-1 leading-8">
+        {latestGoal.innerGoal}
+      </p>
+
+      <p className="mt-4 text-sm text-gray-400">
+        外的目標
+      </p>
+
+      <p>
+        {latestGoal.targetCount}件
+      </p>
+
+      <p>
+        ¥
+        {Number(
+          latestGoal.targetAmount
+        ).toLocaleString()}
+      </p>
+      <p className="mt-4 text-xs text-gray-400">
+  編集 →
+</p>
+    </>
+  ) : (
+    <p className="leading-8 text-gray-400">
+      月目標がまだありません
     </p>
+  )}
+
+</div>
 
   </div>
 </section>
+</Link>
 
 <section className="mt-6">
   <div
@@ -594,7 +674,36 @@ return (
   </div>
 </section>
 
+<Link href="/monthly-reports">
+  <section className="mt-6">
+    <div
+      className={`cursor-pointer rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+        darkMode
+          ? "bg-gray-800/80"
+          : "bg-gray-50"
+      }`}
+    >
+      <p
+        className={`text-sm ${
+          darkMode
+            ? "text-gray-300"
+            : "text-gray-400"
+        }`}
+      >
+        反決文
+      </p>
 
+      <p className="mt-4 text-lg leading-8">
+        今月の振り返りを作成
+      </p>
+
+      <p className="mt-4 text-xs text-gray-400">
+        AIで下書きを生成 →
+      </p>
+
+    </div>
+  </section>
+</Link>
      
 
       <section className="mt-10 space-y-4">
