@@ -545,6 +545,36 @@ return (
   </div>
 </section>
 
+      <section className="mt-6">
+        
+
+        <Link
+  href="/journal"
+  className={`block rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
+    darkMode
+      ? "bg-gray-800/80"
+      : "bg-gray-50"
+  }`}
+>
+         <p
+  className={`text-sm ${
+    darkMode
+      ? "text-gray-300"
+      : "text-gray-400"
+  }`}
+>
+
+            今日の記録
+          </p>
+
+          <h2 className="mt-2 text-2xl">
+            あしあとを書く
+          </h2>
+        </Link>
+
+      </section>
+
+      
 {/* プロフィール */}
 <section className="mt-6">
 <Link href="/profile">
@@ -704,35 +734,38 @@ return (
     </div>
   </section>
 </Link>
-     
+<Link href="/monthly-reports/history">
+  <section className="mt-6">
+    <div
+      className={`cursor-pointer rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+        darkMode
+          ? "bg-gray-800/80"
+          : "bg-gray-50"
+      }`}
+    >
+      <p
+        className={`text-sm ${
+          darkMode
+            ? "text-gray-300"
+            : "text-gray-400"
+        }`}
+      >
+        履歴
+      </p>
 
-      <section className="mt-10 space-y-4">
+      <p className="mt-4 text-lg leading-8">
+        月末レポート履歴
+      </p>
 
-        <Link
-  href="/journal"
-  className={`block rounded-3xl p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
-    darkMode
-      ? "bg-gray-800/80"
-      : "bg-gray-50"
-  }`}
->
-         <p
-  className={`text-sm ${
-    darkMode
-      ? "text-gray-300"
-      : "text-gray-400"
-  }`}
->
+      <p className="mt-4 text-xs text-gray-400">
+        過去のレポートを見る →
+      </p>
 
-            今日の記録
-          </p>
+    </div>
+  </section>
+</Link>
 
-          <h2 className="mt-2 text-2xl">
-            あしあとを書く
-          </h2>
-        </Link>
 
-      </section>
 
     </main>
   );

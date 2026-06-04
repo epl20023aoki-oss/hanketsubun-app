@@ -63,7 +63,7 @@ useEffect(() => {
   const unsubscribe =
     onAuthStateChanged(
       auth,
-      (currentUser) => {
+      async (currentUser) => {
 
         console.log(
           "認証状態",
@@ -71,6 +71,30 @@ useEffect(() => {
         );
 
         setUser(currentUser);
+        if (!currentUser)
+  return;
+
+const tagDoc =
+  await getDoc(
+    doc(
+      db,
+      "users",
+      currentUser.uid,
+      "settings",
+      "custom_tags"
+    )
+  );
+
+if (
+  tagDoc.exists()
+) {
+
+  setCustomTags(
+    tagDoc.data().tags || []
+  );
+
+}
+
       }
     );
 
@@ -202,14 +226,24 @@ setFilterTag("");
   setSelectedDate(newDate);
 };
 
-const tags = [
-"重要",
-"証",
-"祈り",
-"人間関係",
-"感謝",
-"葛藤",
+const defaultTags = [
+  "重要",
+  "証",
+  "祈り",
+  "人間関係",
+  "感謝",
+  "葛藤",
 ];
+
+const tags = defaultTags;
+
+
+const [customTag, setCustomTag] =
+  useState("");
+
+const [customTags, setCustomTags] =
+  useState<string[]>([]);
+  
 
 useEffect(() => {
 
@@ -757,9 +791,18 @@ await setDoc(
       </h3>
 
       <div className="flex flex-wrap gap-2">
-        {tags.map((tag) => (
+     
+       {[
+  ...tags,
+  ...customTags,
+].map((tag) => (
+
+   <div
+    key={tag}
+    className="flex items-center gap-1"
+  >
+
          <button
-  key={tag}
   onClick={async () => {
     let updatedTags = [...selectedTags];
 
@@ -803,18 +846,123 @@ await setDoc(
 >
   #{tag}
 </button>
+
+{!defaultTags.includes(tag) && (
+
+  <button
+    onClick={async () => {
+
+      const updatedCustomTags =
+        customTags.filter(
+          (t) => t !== tag
+        );
+
+      setCustomTags(
+        updatedCustomTags
+      );
+
+      const updatedSelectedTags =
+  selectedTags.filter(
+    (t) => t !== tag
+  );
+
+setSelectedTags(
+  updatedSelectedTags
+);
+
+
+      if (!user) return;
+
+      await setDoc(
+        doc(
+          db,
+          "users",
+          user.uid,
+          "settings",
+          "custom_tags"
+        ),
+        {
+          tags:
+            updatedCustomTags,
+        }
+      );
+
+    }}
+    className="text-xs text-red-500 px-1"
+  >
+    ✕
+  </button>
+
+)}
+
+ </div>
+
         ))}
       </div>
 
-      <input
-        className={`w-full rounded-2xl p-4 shadow-sm outline-none placeholder:text-gray-400 ${
-  darkMode
-    ? "bg-gray-800/80 text-white"
-    : "bg-gray-50 text-gray-800"
-}`}
+     <input
+  value={customTag}
+  onChange={(e) =>
+    setCustomTag(
+      e.target.value
+    )
+  }
+  className={`w-full rounded-2xl p-4 shadow-sm outline-none placeholder:text-gray-400 ${
+    darkMode
+      ? "bg-gray-800/80 text-white"
+      : "bg-gray-50 text-gray-800"
+  }`}
+  placeholder="自由タグを追加"
+/>
 
-        placeholder="自由タグを追加"
-      />
+<button
+    onClick={async () => {
+
+    if (
+      !customTag.trim()
+    )
+      return;
+
+    if (
+      customTags.includes(
+        customTag
+      )
+    )
+      return;
+
+    const updatedCustomTags = [
+  ...customTags,
+  customTag,
+];
+
+setCustomTags(
+  updatedCustomTags
+);
+
+if (!user) return;
+
+await setDoc(
+  doc(
+    db,
+    "users",
+    user.uid,
+    "settings",
+    "custom_tags"
+  ),
+  {
+    tags:
+      updatedCustomTags,
+  }
+);
+
+setCustomTag("");
+
+  }}
+  className="mt-2 rounded-xl bg-blue-600 px-4 py-2 text-white"
+>
+  タグ追加
+</button>
+
     </section>
 
  
@@ -835,7 +983,10 @@ await setDoc(
   </p>
 
   <div className="flex flex-wrap gap-2">
-    {tags.map((tag) => (
+   {[
+  ...tags,
+  ...customTags,
+].map((tag) => (
       <button
         key={tag}
         onClick={() =>
@@ -877,7 +1028,7 @@ await setDoc(
       .map((log) => (
         <div
           key={log.id}
-          onClick={() => {
+          onClick={async () => {
             setSelectedDate(log.id);
           }}
           className={`cursor-pointer rounded-2xl p-4 shadow-sm transition-all duration-200 hover:bg-gray-100 hover:-translate-y-0.5 ${

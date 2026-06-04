@@ -17,6 +17,9 @@ import {
   getDocs,
 } from "firebase/firestore";
 
+import { useRef } from "react";
+
+
 export default function MonthlyReportsPage() {
 
   const [user, setUser] =
@@ -61,6 +64,25 @@ export default function MonthlyReportsPage() {
 
     const [generating, setGenerating] =
   useState(false);
+
+const [
+  nextInnerGoal,
+  setNextInnerGoal
+] = useState("");
+
+const [
+  nextTargetCount,
+  setNextTargetCount
+] = useState("");
+
+const [
+  nextTargetAmount,
+  setNextTargetAmount
+] = useState("");
+
+
+  const reportRef =
+  useRef<HTMLDivElement>(null);
 
   useEffect(() => {
 
@@ -237,6 +259,22 @@ if (
 
       testimonySummary,
 
+ nextGoal: {
+      innerGoal:
+        nextInnerGoal,
+
+      targetCount:
+        Number(
+          nextTargetCount
+        ),
+
+      targetAmount:
+        Number(
+          nextTargetAmount
+        ),
+    },
+
+
       updatedAt:
         new Date(),
     }
@@ -245,6 +283,16 @@ if (
   setSaving(false);
 
   alert("保存しました");
+};
+
+const generatePDF = () => {
+
+  console.log("PDF clicked");
+
+  alert("print start");
+
+  window.print();
+
 };
 
 const generateDraft =
@@ -509,11 +557,12 @@ const callAI = async () => {
         </h1>
 
 <div
-  className={`rounded-3xl p-6 shadow-sm ${
-    darkMode
-      ? "bg-gray-800/80"
-      : "bg-gray-50"
-  }`}
+  ref={reportRef}
+  style={{
+    backgroundColor: "#ffffff",
+    color: "#000000",
+  }}
+  className="rounded-3xl p-6"
 >
 
   <p className="mb-2 text-sm text-gray-400">
@@ -683,6 +732,55 @@ const callAI = async () => {
   rows={8}
 />
 
+<hr className="my-8" />
+
+<h2 className="mb-4 text-xl">
+  来月の目標
+</h2>
+
+<p className="mb-2 text-sm text-gray-400">
+  内的目標
+</p>
+
+<textarea
+  value={nextInnerGoal}
+  onChange={(e) =>
+    setNextInnerGoal(
+      e.target.value
+    )
+  }
+  className="mb-6 w-full rounded-2xl border p-4"
+/>
+
+<p className="mb-2 text-sm text-gray-400">
+  目標件数
+</p>
+
+<input
+  value={nextTargetCount}
+  onChange={(e) =>
+    setNextTargetCount(
+      e.target.value
+    )
+  }
+  className="mb-6 w-full rounded-2xl border p-4"
+/>
+
+<p className="mb-2 text-sm text-gray-400">
+  目標金額
+</p>
+
+<input
+  value={nextTargetAmount}
+  onChange={(e) =>
+    setNextTargetAmount(
+      e.target.value
+    )
+  }
+  className="w-full rounded-2xl border p-4"
+/>
+
+
 <button
  onClick={callAI}
   className="mt-6 mb-3 w-full rounded-2xl bg-blue-600 py-4 text-white"
@@ -697,6 +795,18 @@ const callAI = async () => {
   className="mt-6 w-full rounded-2xl bg-gray-800 py-4 text-white"
 >
   保存
+</button>
+
+<button
+  onClick={() => {
+    window.open(
+      `/monthly-reports/pdf?month=${selectedMonth}`,
+      "_blank"
+    );
+  }}
+  className="mt-3 w-full rounded-2xl bg-blue-600 py-4 text-white"
+>
+  PDF出力
 </button>
 
 </div>
