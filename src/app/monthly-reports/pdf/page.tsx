@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Suspense,
   useEffect,
   useState,
 } from "react";
@@ -24,7 +25,7 @@ import {
 } from "next/navigation";
 
 
-export default function PDFPage() {
+function PDFContent() {
 
   const params =
     useSearchParams();
@@ -199,5 +200,21 @@ if (!report)
 </main>
 
 );
+
+}
+
+export default function PDFPage() {
+
+  return (
+    <Suspense
+      fallback={
+        <div>
+          読み込み中...
+        </div>
+      }
+    >
+      <PDFContent />
+    </Suspense>
+  );
 
 }
