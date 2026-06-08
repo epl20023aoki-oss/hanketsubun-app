@@ -77,6 +77,9 @@ const [user, setUser] =
 const [name, setName] = useState("");
 const [team, setTeam] = useState("");
 
+const [role, setRole] =
+  useState("");
+
 const [latestGoal, setLatestGoal] =
   useState<any>(null);
 
@@ -236,6 +239,9 @@ useEffect(() => {
 
       setName(data.name || "");
       setTeam(data.team || "");
+      setRole(
+        data.role || "member"
+     );
     }
   };
 
@@ -603,6 +609,40 @@ return (
   </div>
 </Link>
 </section>
+
+{role === "admin" && (
+
+  <Link href="/admin">
+
+    <section className="mt-6">
+
+      <div
+        className={`rounded-3xl p-6 shadow-sm transition-all duration-300 cursor-pointer ${
+          darkMode
+            ? "bg-gray-800/80"
+            : "bg-gray-50"
+        }`}
+      >
+
+        <p className="text-sm text-gray-400">
+          管理画面
+        </p>
+
+        <p className="mt-2 text-lg">
+          提出状況を確認
+        </p>
+
+        <p className="mt-4 text-xs text-gray-400">
+          開く →
+        </p>
+
+      </div>
+
+    </section>
+
+  </Link>
+
+)}
 
 {/* 今月の目標 */}
 <Link href="/monthly-goals">

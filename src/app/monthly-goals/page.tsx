@@ -15,6 +15,7 @@ import {
   getDocs,
   setDoc,
   deleteDoc,
+  getDoc,
 } from "firebase/firestore";
 
 export default function MonthlyGoalsPage() {
@@ -103,6 +104,97 @@ export default function MonthlyGoalsPage() {
   );
 
   setGoals(data);
+};
+
+const loadPreviousGoal =
+  async (
+    month: string
+  ) => {
+
+    console.log(
+      "loadPreviousGoal開始"
+    );
+
+    console.log(
+      "month",
+      month
+    );
+
+    if (!user)
+      return;
+
+    const date =
+      new Date(
+        month + "-01"
+      );
+
+    date.setMonth(
+      date.getMonth() - 1
+    );
+
+    const previousMonth =
+      date
+        .toISOString()
+        .slice(0, 7);
+
+    console.log(
+      "previousMonth",
+      previousMonth
+    );
+
+    const snapshot =
+      await getDoc(
+        doc(
+          db,
+          "users",
+          user.uid,
+          "monthly_reports",
+          previousMonth
+        )
+      );
+
+    console.log(
+      "exists",
+      snapshot.exists()
+    );
+
+    if (
+      !snapshot.exists()
+    )
+      return;
+
+    const report =
+      snapshot.data();
+
+    console.log(
+      "report",
+      report
+    );
+
+    if (
+      !report.nextGoal
+    )
+      return;
+
+    setInnerGoal(
+      report.nextGoal
+        .innerGoal || ""
+    );
+
+    setTargetCount(
+      String(
+        report.nextGoal
+          .targetCount || ""
+      )
+    );
+
+    setTargetAmount(
+      String(
+        report.nextGoal
+          .targetAmount || ""
+      )
+    );
+
 };
 
 useEffect(() => {
@@ -199,15 +291,29 @@ useEffect(() => {
     </p>
 
     <input
-      type="month"
-      value={selectedMonth}
-      onChange={(e) =>
-        setSelectedMonth(
-          e.target.value
-        )
-      }
-      className="mb-4 w-full rounded-2xl border p-4"
-    />
+  type="month"
+  value={selectedMonth}
+  onChange={async (e) => {
+
+    const month =
+      e.target.value;
+
+    setSelectedMonth(
+      month
+    );
+
+    setInnerGoal("");
+    setTargetCount("");
+    setTargetAmount("");
+
+   await loadPreviousGoal(
+    month
+  );
+
+}}
+
+  className="mb-4 w-full rounded-2xl border p-4"
+/>
 
     <textarea
       value={innerGoal}

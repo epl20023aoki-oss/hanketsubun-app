@@ -33,6 +33,9 @@ function PDFContent() {
   const month =
     params.get("month");
 
+  const uid =
+  params.get("uid");
+
   const [report, setReport] =
   useState<any>(null);
 
@@ -49,12 +52,13 @@ function PDFContent() {
         const snapshot =
           await getDoc(
             doc(
-              db,
-              "users",
-              user.uid,
-              "monthly_reports",
-              month
-            )
+  db,
+  "users",
+  uid || user.uid,
+  "monthly_reports",
+  month
+)
+
           );
 
         if (

@@ -31,6 +31,10 @@ export default function MonthlyReportsPage() {
   const [saving, setSaving] =
     useState(false);
 
+    const [submitted, setSubmitted] =
+  useState(false);
+
+
   const [name, setName] =
     useState("");
 
@@ -206,6 +210,22 @@ if (
     report.testimonySummary || ""
   );
 
+  setNextInnerGoal(
+  report.nextGoal?.innerGoal || ""
+);
+
+setNextTargetCount(
+  report.nextGoal?.targetCount?.toString() || ""
+);
+
+setNextTargetAmount(
+  report.nextGoal?.targetAmount?.toString() || ""
+);
+
+setSubmitted(
+  report.submitted || false
+);
+
 } else {
 
   setActualCount("");
@@ -213,6 +233,13 @@ if (
   setVictorySummary("");
   setDefeatSummary("");
   setTestimonySummary("");
+  setNextInnerGoal("");
+setNextTargetCount("");
+setNextTargetAmount("");
+
+setSubmitted(
+  false
+);
 
 }
 
@@ -274,6 +301,7 @@ if (
         ),
     },
 
+submitted: false,
 
       updatedAt:
         new Date(),
@@ -556,6 +584,20 @@ const callAI = async () => {
           月末レポート
         </h1>
 
+{submitted ? (
+
+  <div className="mb-6 rounded-2xl bg-green-100 p-4 text-center text-green-700">
+    ✅ 提出済み
+  </div>
+
+) : (
+
+  <div className="mb-6 rounded-2xl bg-yellow-100 p-4 text-center text-yellow-700">
+    📝 未提出
+  </div>
+
+)}
+
 <div
   ref={reportRef}
   style={{
@@ -795,6 +837,61 @@ const callAI = async () => {
   className="mt-6 w-full rounded-2xl bg-gray-800 py-4 text-white"
 >
   保存
+</button>
+
+<button
+  onClick={async () => {
+
+    if (!user) return;
+
+    await setDoc(
+      doc(
+        db,
+        "users",
+        user.uid,
+        "monthly_reports",
+        selectedMonth
+      ),
+      {
+        submitted: true,
+        submittedAt:
+          new Date(),
+      },
+      {
+        merge: true,
+      }
+    );
+
+await setDoc(
+  doc(
+    db,
+    "submitted_reports",
+    selectedMonth,
+    "users",
+    user.uid
+  ),
+  {
+    uid: user.uid,
+
+    name,
+
+    team,
+
+    month: selectedMonth,
+
+    submittedAt:
+      new Date(),
+  }
+);
+
+    alert(
+      "提出しました"
+    );
+
+  }}
+  className="mt-4 w-full rounded-2xl bg-blue-600 py-4 text-white"
+>
+  提出する
 </button>
 
 <button
