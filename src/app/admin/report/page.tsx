@@ -2,7 +2,11 @@
 
 import { useSearchParams } from "next/navigation";
 
-import { useEffect, useState } from "react";
+import {
+  Suspense,
+  useEffect,
+  useState,
+} from "react";
 
 import {
   doc,
@@ -15,7 +19,7 @@ import {
 
 import Link from "next/link";
 
-export default function ReportPage() {
+function ReportContent() {
 
   const params =
     useSearchParams();
@@ -191,4 +195,12 @@ useEffect(() => {
 
   );
 
+}
+
+export default function ReportPage() {
+  return (
+    <Suspense fallback={<div>読み込み中...</div>}>
+      <ReportContent />
+    </Suspense>
+  );
 }
