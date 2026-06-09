@@ -26,6 +26,26 @@ export default function HistoryPage() {
   const [reports, setReports] =
     useState<any[]>([]);
 
+  const [darkMode, setDarkMode] =
+  useState(() => {
+
+    if (
+      typeof window !==
+      "undefined"
+    ) {
+
+      return (
+        localStorage.getItem(
+          "darkMode"
+        ) === "true"
+      );
+
+    }
+
+    return false;
+
+  });
+
   useEffect(() => {
 
     const unsubscribe =
@@ -62,18 +82,72 @@ export default function HistoryPage() {
 
   }, []);
 
+  useEffect(() => {
+
+  const savedMode =
+    localStorage.getItem(
+      "darkMode"
+    );
+
+  if (savedMode) {
+
+    setDarkMode(
+      JSON.parse(
+        savedMode
+      )
+    );
+
+  }
+
+}, []);
+
   return (
-    <main className="mx-auto max-w-2xl p-6">
+   <main
+  className={`min-h-screen p-6 ${
+    darkMode
+      ? "bg-gray-900 text-white"
+      : "bg-white text-gray-900"
+  }`}
+>
+
+  <div className="mx-auto max-w-2xl">
 
 <div className="mb-8 flex items-center justify-between">
 
   <Link
     href="/"
-    className="text-sm text-gray-400"
+    className={`text-sm ${
+      darkMode
+        ? "text-gray-300"
+        : "text-gray-400"
+    }`}
   >
     ← ホームへ戻る
   </Link>
 
+  <button
+    onClick={() => {
+
+      const newMode =
+        !darkMode;
+
+      setDarkMode(
+        newMode
+      );
+
+      localStorage.setItem(
+        "darkMode",
+        JSON.stringify(
+          newMode
+        )
+      );
+
+    }}
+  >
+    {darkMode
+      ? "☀️"
+      : "🌙"}
+  </button>
 
 </div>
 
@@ -90,21 +164,33 @@ export default function HistoryPage() {
         key={report.id}
         href={`/monthly-reports/pdf?month=${report.id}`}
         target="_blank"
-        className="block rounded-2xl border p-4 hover:bg-gray-50"
+      className={`block rounded-2xl border p-4 transition-colors ${
+  darkMode
+    ? "border-gray-700 hover:bg-gray-800"
+    : "border-gray-200 hover:bg-gray-50"
+}`}
       >
 
         <div className="font-bold">
           {report.id}
         </div>
 
-        <div className="text-sm text-gray-500">
-          {report.name}
-        </div>
+       <div
+  className={`text-sm ${
+    darkMode
+      ? "text-gray-300"
+      : "text-gray-500"
+  }`}
+>
+  {report.name}
+</div>
 
       </Link>
 
     )
   )}
+
+</div>
 
 </div>
 

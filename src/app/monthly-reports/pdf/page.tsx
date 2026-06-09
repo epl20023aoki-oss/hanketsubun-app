@@ -24,6 +24,8 @@ import {
   useSearchParams,
 } from "next/navigation";
 
+import Link from "next/link";
+
 
 function PDFContent() {
 
@@ -38,6 +40,26 @@ function PDFContent() {
 
   const [report, setReport] =
   useState<any>(null);
+
+  const [darkMode, setDarkMode] =
+  useState(() => {
+
+    if (
+      typeof window !==
+      "undefined"
+    ) {
+
+      return (
+        localStorage.getItem(
+          "darkMode"
+        ) === "true"
+      );
+
+    }
+
+    return false;
+
+  });
 
   useEffect(() => {
 
@@ -96,12 +118,78 @@ useEffect(() => {
 
 }, [report]);
 
+useEffect(() => {
+
+  const savedMode =
+    localStorage.getItem(
+      "darkMode"
+    );
+
+  if (savedMode) {
+
+    setDarkMode(
+      JSON.parse(
+        savedMode
+      )
+    );
+
+  }
+
+}, []);
+
 if (!report)
   return <div>読み込み中...</div>;
 
-  return (
+ return (
 
-<main className="mx-auto max-w-4xl bg-white p-12 text-black">
+<main
+  className={`min-h-screen p-12 ${
+    darkMode
+      ? "bg-gray-900 text-white"
+      : "bg-white text-black"
+  }`}
+>
+
+  <div className="mx-auto max-w-4xl">
+
+ <div className="mb-8 flex items-center justify-between">
+
+  <Link
+    href="/monthly-reports/history"
+  className={`text-sm ${
+  darkMode
+    ? "text-gray-300"
+    : "text-gray-500"
+}`}
+  >
+    ← 月末レポート履歴へ戻る
+  </Link>
+
+  <button
+    onClick={() => {
+
+      const newMode =
+        !darkMode;
+
+      setDarkMode(
+        newMode
+      );
+
+      localStorage.setItem(
+        "darkMode",
+        JSON.stringify(
+          newMode
+        )
+      );
+
+    }}
+  >
+    {darkMode
+      ? "☀️"
+      : "🌙"}
+  </button>
+
+</div>
 
   <h1 className="mb-10 text-center text-3xl font-bold">
     {month} 月末レポート
@@ -200,6 +288,8 @@ if (!report)
       report.nextGoal?.targetAmount || 0
     ).toLocaleString()}
   </p>
+
+</div>
 
 </main>
 
