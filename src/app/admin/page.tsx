@@ -183,62 +183,66 @@ const [darkMode, setDarkMode] =
      
 <hr className="my-8" />
 
-<div className="mt-6 mb-6">
+<div className="mt-6 mb-6 flex gap-4">
 
-  <label
-    className={`mb-2 block text-sm ${
-      darkMode
-        ? "text-gray-300"
-        : "text-gray-600"
-    }`}
-  >
-    対象月
-  </label>
+  <div className="flex-1">
 
-  <input
-    type="month"
-    value={selectedMonth}
-    onChange={(e) =>
-      setSelectedMonth(
-        e.target.value
-      )
-    }
-    className={`rounded-xl border px-4 py-2 ${
-      darkMode
-        ? "border-gray-700 bg-gray-800 text-white"
-        : "border-gray-300 bg-white"
-    }`}
-  />
+    <label
+      className={`mb-2 block text-sm ${
+        darkMode
+          ? "text-gray-300"
+          : "text-gray-600"
+      }`}
+    >
+      対象月
+    </label>
 
-</div>
+    <input
+      type="month"
+      value={selectedMonth}
+      onChange={(e) =>
+        setSelectedMonth(
+          e.target.value
+        )
+      }
+      className={`w-full rounded-xl border px-4 py-2 ${
+        darkMode
+          ? "border-gray-700 bg-gray-800 text-white"
+          : "border-gray-300 bg-white"
+      }`}
+    />
 
-<div className="mb-6">
+  </div>
 
-  <label
-    className={`mb-2 block text-sm ${
-      darkMode
-        ? "text-gray-300"
-        : "text-gray-600"
-    }`}
-  >
-    名前検索
-  </label>
+  <div className="flex-1">
 
-  <input
-    type="text"
-    value={searchName}
-    onChange={(e) =>
-      setSearchName(
-        e.target.value
-      )
-    }
-    placeholder="名前を入力"
-    className={`w-full rounded-xl border px-4 py-2 ${
-      darkMode
-        ? "border-gray-700 bg-gray-800 text-white"
-        : "border-gray-300 bg-white"
-    }`}
-  />
+    <label
+      className={`mb-2 block text-sm ${
+        darkMode
+          ? "text-gray-300"
+          : "text-gray-600"
+      }`}
+    >
+      名前検索
+    </label>
+
+    <input
+      type="text"
+      value={searchName}
+      onChange={(e) =>
+        setSearchName(
+          e.target.value
+        )
+      }
+      placeholder="名前を入力"
+      className={`w-full rounded-xl border px-4 py-2 ${
+        darkMode
+          ? "border-gray-700 bg-gray-800 text-white"
+          : "border-gray-300 bg-white"
+      }`}
+    />
+
+  </div>
 
 </div>
 

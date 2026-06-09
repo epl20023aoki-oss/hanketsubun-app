@@ -103,23 +103,6 @@ function PDFContent() {
 
 useEffect(() => {
 
-  if (!report)
-    return;
-
-  const timer =
-    setTimeout(() => {
-
-      window.print();
-
-    }, 500);
-
-  return () =>
-    clearTimeout(timer);
-
-}, [report]);
-
-useEffect(() => {
-
   const savedMode =
     localStorage.getItem(
       "darkMode"
@@ -152,42 +135,55 @@ if (!report)
 
   <div className="mx-auto max-w-4xl">
 
- <div className="mb-8 flex items-center justify-between">
+<div className="mb-8 flex items-center justify-between">
 
   <Link
     href="/monthly-reports/history"
-  className={`text-sm ${
-  darkMode
-    ? "text-gray-300"
-    : "text-gray-500"
-}`}
+    className={`text-sm ${
+      darkMode
+        ? "text-gray-300"
+        : "text-gray-500"
+    }`}
   >
     ← 月末レポート履歴へ戻る
   </Link>
 
-  <button
-    onClick={() => {
+  <div className="flex items-center gap-3">
 
-      const newMode =
-        !darkMode;
+    <button
+      onClick={() => window.print()}
+      className={`rounded-xl px-4 py-2 text-sm ${
+        darkMode
+          ? "bg-gray-700 text-white"
+          : "bg-gray-100 text-gray-900"
+      }`}
+    >
+      🖨 印刷
+    </button>
 
-      setDarkMode(
-        newMode
-      );
+    <button
+      onClick={() => {
+        const newMode =
+          !darkMode;
 
-      localStorage.setItem(
-        "darkMode",
-        JSON.stringify(
+        setDarkMode(
           newMode
-        )
-      );
+        );
 
-    }}
-  >
-    {darkMode
-      ? "☀️"
-      : "🌙"}
-  </button>
+        localStorage.setItem(
+          "darkMode",
+          JSON.stringify(
+            newMode
+          )
+        );
+      }}
+    >
+      {darkMode
+        ? "☀️"
+        : "🌙"}
+    </button>
+
+  </div>
 
 </div>
 
