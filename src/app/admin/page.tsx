@@ -31,6 +31,10 @@ export default function AdminPage() {
   setSearchName] =
   useState("");
 
+  const [searchTeam,
+  setSearchTeam] =
+  useState("");
+
 const [darkMode, setDarkMode] =
   useState(() => {
 
@@ -223,18 +227,18 @@ const [darkMode, setDarkMode] =
           : "text-gray-600"
       }`}
     >
-      名前検索
+      班検索
     </label>
 
     <input
       type="text"
-      value={searchName}
+      value={searchTeam}
       onChange={(e) =>
-        setSearchName(
+        setSearchTeam(
           e.target.value
         )
       }
-      placeholder="名前を入力"
+      placeholder="班名を入力"
       className={`w-full rounded-xl border px-4 py-2 ${
         darkMode
           ? "border-gray-700 bg-gray-800 text-white"
@@ -246,15 +250,70 @@ const [darkMode, setDarkMode] =
 
 </div>
 
+<div className="mb-6">
+
+  <label
+    className={`mb-2 block text-sm ${
+      darkMode
+        ? "text-gray-300"
+        : "text-gray-600"
+    }`}
+  >
+    名前検索
+  </label>
+
+  <input
+    type="text"
+    value={searchName}
+    onChange={(e) =>
+      setSearchName(
+        e.target.value
+      )
+    }
+    placeholder="名前を入力"
+    className={`w-full rounded-xl border px-4 py-2 ${
+      darkMode
+        ? "border-gray-700 bg-gray-800 text-white"
+        : "border-gray-300 bg-white"
+    }`}
+  />
+
+</div>
+
+<p
+  className={`mb-4 text-sm ${
+    darkMode
+      ? "text-gray-300"
+      : "text-gray-600"
+  }`}
+>
+  提出者数：
+  <span className="font-semibold">
+    {submittedReports.length}名
+  </span>
+</p>
+
 <p className="mb-4 text-xl">
   提出状況
 </p>
 
 {submittedReports
-  .filter((report) =>
-    report.name
-      ?.includes(searchName)
-  )
+  .filter((report) => {
+
+    const matchName =
+      report.name
+        ?.includes(searchName);
+
+    const matchTeam =
+      report.team
+        ?.includes(searchTeam);
+
+    return (
+      matchName &&
+      matchTeam
+    );
+
+  })
   .map(
   (report) => (
 
