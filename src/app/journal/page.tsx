@@ -226,6 +226,58 @@ setFilterTag("");
   setSelectedDate(newDate);
 };
 
+const copyForLine = async () => {
+
+  const actionText =
+    actions
+      .filter(
+        (action) => action.text
+      )
+      .map(
+        (action) =>
+          `・${action.text}${
+            action.checked
+              ? " ✅"
+              : ""
+          }`
+      )
+      .join("\n");
+
+  const text = `
+【今日の記録】
+
+■ 今日の目標
+${goal}
+
+■ 勝利
+${victory}
+
+■ 敗北
+${defeat}
+
+■ 証
+${testimony}
+
+■ 振り返り
+${reflection}
+
+■ 実践項目
+${actionText}
+
+■ タグ
+${selectedTags.join("、")}
+`;
+
+  await navigator.clipboard.writeText(
+    text
+  );
+
+  alert(
+    "LINE用の内容をコピーしました"
+  );
+
+};
+
 const defaultTags = [
   "重要",
   "証",
@@ -350,7 +402,9 @@ return (
 {/* 日付 */}
 <section>
 
-  <div className="mb-2 flex items-center gap-4 text-sm text-gray-400">
+ <div className="mb-2 flex items-center justify-between text-sm text-gray-400">
+
+  <div className="flex items-center gap-4">
 
     <button
       onClick={() => changeDate(-1)}
@@ -378,6 +432,19 @@ return (
     </button>
 
   </div>
+
+  <button
+    onClick={copyForLine}
+    className={`rounded-full px-3 py-1 ${
+      darkMode
+        ? "hover:bg-gray-700"
+        : "hover:bg-gray-100"
+    }`}
+  >
+    📋LINE
+  </button>
+
+</div>
 
 {showCalendar && (
   <div className="mb-4">

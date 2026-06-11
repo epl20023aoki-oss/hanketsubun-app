@@ -36,40 +36,25 @@ try {
       model: "gemini-2.5-flash",
     });
 
-  const result =
-    await model.generateContent(`
+ const result =
+  await model.generateContent(`
 
 あなたは月末レポート作成アシスタントです。
 
-以下は1か月の日記データです。
+以下は1か月の勝利点です。
 
-【勝利点】
-${victories.join("\n")}
-
-【敗北点】
-${defeats.join("\n")}
-
-【神様との出会い・証】
-${testimonies.join("\n")}
+${data.join("\n")}
 
 ルール
 
 ・時系列を意識する
 ・本人らしい雰囲気を残す
 ・読みやすく整理する
-・ネガティブ表現は消さない
 
 以下のJSONのみを返してください。
 
-説明文は禁止。
-前置きは禁止。
-Markdown禁止。
-JSONのみ返してください。
-
 {
-  "victorySummary":"",
-  "defeatSummary":"",
-  "testimonySummary":""
+  "summary":""
 }
 
 `);
@@ -98,14 +83,8 @@ const parsed =
   JSON.parse(cleaned);
 
 return NextResponse.json({
-  victorySummary:
-    parsed.victorySummary || "",
-
-  defeatSummary:
-    parsed.defeatSummary || "",
-
-  testimonySummary:
-    parsed.testimonySummary || "",
+  summary:
+    parsed.summary || "",
 });
 
 } catch (error) {

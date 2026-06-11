@@ -228,18 +228,6 @@ useEffect(() => {
 
           <div className="flex items-center gap-4">
 
-            <span
-              className={`text-sm ${
-                saving
-                  ? "text-green-500"
-                  : "text-gray-400"
-              }`}
-            >
-              {saving
-                ? "保存中..."
-                : "保存済み"}
-            </span>
-
             <button
               onClick={() => {
 

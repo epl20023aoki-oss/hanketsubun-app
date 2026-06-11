@@ -163,7 +163,6 @@ export default function HistoryPage() {
       <Link
         key={report.id}
         href={`/monthly-reports/pdf?month=${report.id}`}
-        target="_blank"
       className={`block rounded-2xl border p-4 transition-colors ${
   darkMode
     ? "border-gray-700 hover:bg-gray-800"

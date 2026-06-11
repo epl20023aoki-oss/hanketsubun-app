@@ -26,11 +26,15 @@ import {
 
 import Link from "next/link";
 
+import { useRouter } from "next/navigation";
+
 
 function PDFContent() {
 
   const params =
     useSearchParams();
+
+  const router = useRouter();
 
   const month =
     params.get("month");
@@ -137,16 +141,16 @@ if (!report)
 
 <div className="mb-8 flex items-center justify-between">
 
-  <Link
-    href="/monthly-reports/history"
-    className={`text-sm ${
-      darkMode
-        ? "text-gray-300"
-        : "text-gray-500"
-    }`}
-  >
-    ← 月末レポート履歴へ戻る
-  </Link>
+ <button
+  onClick={() => router.back()}
+  className={`text-sm ${
+    darkMode
+      ? "text-gray-300"
+      : "text-gray-500"
+  }`}
+>
+  ← 戻る
+</button>
 
   <div className="flex items-center gap-3">
 

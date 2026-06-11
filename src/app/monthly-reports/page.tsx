@@ -34,6 +34,8 @@ export default function MonthlyReportsPage() {
     const [submitted, setSubmitted] =
   useState(false);
 
+  const [submittedAt, setSubmittedAt] =
+  useState<any>(null);
 
   const [name, setName] =
     useState("");
@@ -84,6 +86,20 @@ const [
   setNextTargetAmount
 ] = useState("");
 
+const [
+  hasVictoryGenerated,
+  setHasVictoryGenerated
+] = useState(false);
+
+const [
+  hasDefeatGenerated,
+  setHasDefeatGenerated
+] = useState(false);
+
+const [
+  hasTestimonyGenerated,
+  setHasTestimonyGenerated
+] = useState(false);
 
   const reportRef =
   useRef<HTMLDivElement>(null);
@@ -118,6 +134,37 @@ const [
     }
 
   }, []);
+
+  useEffect(() => {
+
+  if (!user)
+    return;
+
+  const timer =
+    setTimeout(() => {
+
+      saveReport();
+
+    }, 1000);
+
+  return () =>
+    clearTimeout(timer);
+
+}, [
+  team,
+  name,
+  goal,
+  actualCount,
+  actualAmount,
+  victorySummary,
+  defeatSummary,
+  testimonySummary,
+  nextInnerGoal,
+  nextTargetCount,
+  nextTargetAmount,
+  user,
+  selectedMonth,
+]);
 
   useEffect(() => {
 
@@ -225,6 +272,9 @@ setNextTargetAmount(
 setSubmitted(
   report.submitted || false
 );
+setSubmittedAt(
+  report.submittedAt || null
+);
 
 } else {
 
@@ -239,6 +289,10 @@ setNextTargetAmount("");
 
 setSubmitted(
   false
+);
+
+setSubmittedAt(
+  null
 );
 
 }
@@ -301,17 +355,18 @@ setSubmitted(
         ),
     },
 
-submitted: false,
-
       updatedAt:
         new Date(),
-    }
+    },
+    {
+    merge: true
+  }
+    
   );
 
   setSaving(false);
 
-  alert("保存しました");
-};
+ };
 
 const generatePDF = () => {
 
@@ -323,119 +378,8 @@ const generatePDF = () => {
 
 };
 
-const generateDraft =
-  async () => {
 
-    if (!user) return;
-
-    setGenerating(true);
-
-    const snapshot =
-      await getDocs(
-        collection(
-          db,
-          "users",
-          user.uid,
-          "daily_logs"
-        )
-      );
-
-    const logs =
-      snapshot.docs
-        .map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }))
-        .filter((log: any) =>
-          log.id.startsWith(
-            selectedMonth
-          )
-        );
-
-        const victories =
-  logs
-    .map(
-      (log: any) =>
-        log.victory
-    )
-    .filter(Boolean);
-
-const defeats =
-  logs
-    .map(
-      (log: any) =>
-        log.defeat
-    )
-    .filter(Boolean);
-
-const testimonies =
-  logs
-    .map(
-      (log: any) =>
-        log.testimony
-    )
-    .filter(Boolean);
-
-console.log(
-  "勝利点",
-  victories
-);
-
-console.log(
-  "敗北点",
-  defeats
-);
-
-console.log(
-  "証",
-  testimonies
-);
-
-    console.log(
-      "対象月の日記",
-      logs
-    );
-
-    setVictorySummary(
-
-  victories.length > 0
-    ? `今月は${victories.length}件の勝利記録がありました。\n\n${victories.join(
-        "\n"
-      )}`
-    : ""
-
-);
-
-setDefeatSummary(
-
-  defeats.length > 0
-    ? `今月の課題として記録された内容です。\n\n${defeats.join(
-        "\n"
-      )}`
-    : ""
-
-);
-
-setTestimonySummary(
-
-  testimonies.length > 0
-    ? `今月の神様との出会い・証を時系列で整理しました。\n\n${testimonies.join(
-        "\n"
-      )}`
-    : ""
-
-);
-
-setGenerating(false);
-
-alert(
-  "下書きを生成しました"
-);
-
-    setGenerating(false);
-  };
-
-const callAI = async () => {
+const generateVictory = async () => {
 
   if (!user) return;
 
@@ -465,22 +409,14 @@ const callAI = async () => {
 
   const victories =
     logs
-      .map((log: any) => log.victory)
-      .filter(Boolean);
-
-  const defeats =
-    logs
-      .map((log: any) => log.defeat)
-      .filter(Boolean);
-
-  const testimonies =
-    logs
-      .map((log: any) => log.testimony)
+      .map((log: any) =>
+        log.victory
+      )
       .filter(Boolean);
 
   const response =
     await fetch(
-      "/api/generate-report",
+      "/api/generate-section",
       {
         method: "POST",
 
@@ -490,9 +426,8 @@ const callAI = async () => {
         },
 
         body: JSON.stringify({
-          victories,
-          defeats,
-          testimonies,
+          type: "victory",
+          data: victories,
         }),
       }
     );
@@ -500,24 +435,153 @@ const callAI = async () => {
   const data =
     await response.json();
 
-  console.log(data);
-
   setVictorySummary(
-    data.victorySummary || ""
+    data.summary || ""
   );
+
+  setHasVictoryGenerated(
+  true
+);
+
+  setGenerating(false);
+
+};
+
+const generateDefeat = async () => {
+
+  if (!user) return;
+
+  setGenerating(true);
+
+  const snapshot =
+    await getDocs(
+      collection(
+        db,
+        "users",
+        user.uid,
+        "daily_logs"
+      )
+    );
+
+  const logs =
+    snapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+      .filter((log: any) =>
+        log.id.startsWith(
+          selectedMonth
+        )
+      );
+
+  const defeats =
+    logs
+      .map((log: any) =>
+        log.defeat
+      )
+      .filter(Boolean);
+
+  const response =
+    await fetch(
+      "/api/generate-section",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body: JSON.stringify({
+          type: "defeat",
+          data: defeats,
+        }),
+      }
+    );
+
+  const data =
+    await response.json();
 
   setDefeatSummary(
-    data.defeatSummary || ""
+    data.summary || ""
   );
 
-  setTestimonySummary(
-    data.testimonySummary || ""
+  setHasDefeatGenerated(
+    true
   );
 
   setGenerating(false);
 
 };
 
+const generateTestimony = async () => {
+
+  if (!user) return;
+
+  setGenerating(true);
+
+  const snapshot =
+    await getDocs(
+      collection(
+        db,
+        "users",
+        user.uid,
+        "daily_logs"
+      )
+    );
+
+  const logs =
+    snapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+      .filter((log: any) =>
+        log.id.startsWith(
+          selectedMonth
+        )
+      );
+
+  const testimony =
+    logs
+      .map((log: any) =>
+        log.testimony
+      )
+      .filter(Boolean);
+
+  const response =
+    await fetch(
+      "/api/generate-section",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body: JSON.stringify({
+          type: "testimony",
+          data: testimony,
+        }),
+      }
+    );
+
+  const data =
+    await response.json();
+
+  setTestimonySummary(
+  data.summary || ""
+);
+
+setHasTestimonyGenerated(
+  true
+);
+
+  setGenerating(false);
+
+};
 
   return (
     <main
@@ -548,8 +612,8 @@ const callAI = async () => {
               }`}
             >
               {saving
-                ? "保存中..."
-                : "保存済み"}
+        ? "☁ 保存中..."
+        : "✓ 保存済み"}
             </span>
 
             <button
@@ -586,13 +650,46 @@ const callAI = async () => {
 
 {submitted ? (
 
-  <div className="mb-6 rounded-2xl bg-green-100 p-4 text-center text-green-700">
-    ✅ 提出済み
+  <div
+    className={`mb-4 rounded-xl px-4 py-2 text-sm ${
+      darkMode
+        ? "bg-green-900/30 text-green-300"
+        : "bg-green-50 text-green-700"
+    }`}
+  >
+
+    <span className="font-medium">
+      ✅ 提出済み
+    </span>
+
+    {submittedAt && (
+      <span
+        className={`ml-3 ${
+          darkMode
+            ? "text-green-400"
+            : "text-green-600"
+        }`}
+      >
+        {submittedAt?.toDate
+          ? submittedAt
+              .toDate()
+              .toLocaleString()
+          : submittedAt
+              ?.toLocaleString?.()}
+      </span>
+    )}
+
   </div>
 
 ) : (
 
-  <div className="mb-6 rounded-2xl bg-yellow-100 p-4 text-center text-yellow-700">
+  <div
+    className={`mb-4 rounded-xl px-4 py-2 text-sm ${
+      darkMode
+        ? "bg-yellow-900/30 text-yellow-300"
+        : "bg-yellow-50 text-yellow-700"
+    }`}
+  >
     📝 未提出
   </div>
 
@@ -729,9 +826,39 @@ const callAI = async () => {
 
 </div>
 
-<p className="mb-2 text-sm text-gray-400">
-  勝利点
-</p>
+<div className="mb-2 flex items-center justify-between">
+
+  <p className="text-sm text-gray-400">
+    勝利点
+  </p>
+
+  <button
+    onClick={() => {
+
+      if (
+        hasVictoryGenerated &&
+        !window.confirm(
+          "現在の勝利点を上書きします。再生成しますか？"
+        )
+      ) {
+        return;
+      }
+
+      generateVictory();
+
+    }}
+    className={`text-sm ${
+      darkMode
+        ? "text-blue-300"
+        : "text-blue-600"
+    }`}
+  >
+    {hasVictoryGenerated
+      ? "🔄 再生成"
+      : "🤖 AI生成"}
+  </button>
+
+</div>
 
 <textarea
   value={victorySummary}
@@ -744,9 +871,39 @@ const callAI = async () => {
   rows={6}
 />
 
-<p className="mb-2 text-sm text-gray-400">
-  敗北点
-</p>
+<div className="mb-2 flex items-center justify-between">
+
+  <p className="text-sm text-gray-400">
+    敗北点
+  </p>
+
+  <button
+    onClick={() => {
+
+      if (
+        hasDefeatGenerated &&
+        !window.confirm(
+          "現在の敗北点を上書きします。再生成しますか？"
+        )
+      ) {
+        return;
+      }
+
+      generateDefeat();
+
+    }}
+    className={`text-sm ${
+      darkMode
+        ? "text-blue-300"
+        : "text-blue-600"
+    }`}
+  >
+    {hasDefeatGenerated
+      ? "🔄 再生成"
+      : "🤖 AI生成"}
+  </button>
+
+</div>
 
 <textarea
   value={defeatSummary}
@@ -759,9 +916,39 @@ const callAI = async () => {
   rows={6}
 />
 
-<p className="mb-2 text-sm text-gray-400">
-  神様との出会い・証
-</p>
+<div className="mb-2 flex items-center justify-between">
+
+  <p className="text-sm text-gray-400">
+    神様との出会い・証
+  </p>
+
+  <button
+    onClick={() => {
+
+      if (
+        hasTestimonyGenerated &&
+        !window.confirm(
+          "現在の神様との出会い・証を上書きします。再生成しますか？"
+        )
+      ) {
+        return;
+      }
+
+      generateTestimony();
+
+    }}
+    className={`text-sm ${
+      darkMode
+        ? "text-blue-300"
+        : "text-blue-600"
+    }`}
+  >
+    {hasTestimonyGenerated
+      ? "🔄 再生成"
+      : "🤖 AI生成"}
+  </button>
+
+</div>
 
 <textarea
   value={testimonySummary}
@@ -823,88 +1010,75 @@ const callAI = async () => {
 />
 
 
-<button
- onClick={callAI}
-  className="mt-6 mb-3 w-full rounded-2xl bg-blue-600 py-4 text-white"
->
-  {generating
-    ? "生成中..."
-    : "AIで下書きを作る"}
-</button>
+<div className="mt-6 flex gap-3">
 
-<button
-  onClick={saveReport}
-  className="mt-6 w-full rounded-2xl bg-gray-800 py-4 text-white"
->
-  保存
-</button>
+  
+  <button
+    onClick={async () => {
 
-<button
-  onClick={async () => {
+      if (!user) return;
 
-    if (!user) return;
+      await setDoc(
+        doc(
+          db,
+          "users",
+          user.uid,
+          "monthly_reports",
+          selectedMonth
+        ),
+        {
+          submitted: true,
+          submittedAt:
+            new Date(),
+        },
+        {
+          merge: true,
+        }
+      );
 
-    await setDoc(
-      doc(
-        db,
-        "users",
-        user.uid,
-        "monthly_reports",
-        selectedMonth
-      ),
-      {
-        submitted: true,
-        submittedAt:
-          new Date(),
-      },
-      {
-        merge: true,
-      }
-    );
+      await setDoc(
+        doc(
+          db,
+          "submitted_reports",
+          selectedMonth,
+          "users",
+          user.uid
+        ),
+        {
+          uid: user.uid,
 
-await setDoc(
-  doc(
-    db,
-    "submitted_reports",
-    selectedMonth,
-    "users",
-    user.uid
-  ),
-  {
-    uid: user.uid,
+          name,
 
-    name,
+          team,
 
-    team,
+          month: selectedMonth,
 
-    month: selectedMonth,
+          submittedAt:
+            new Date(),
+        }
+      );
 
-    submittedAt:
-      new Date(),
-  }
-);
+      setSubmitted(true);
 
-    alert(
-      "提出しました"
-    );
+      setSubmittedAt(
+        new Date()
+      );
 
-  }}
-  className="mt-4 w-full rounded-2xl bg-blue-600 py-4 text-white"
->
-  提出する
-</button>
+      alert(
+        "提出しました"
+      );
 
-<button
-  onClick={() => {
-    window.open(
-      `/monthly-reports/pdf?month=${selectedMonth}`,
-      "_blank"
-    );
-  }}
-  className="mt-3 w-full rounded-2xl bg-blue-600 py-4 text-white"
->
-  PDF出力
-</button>
+    }}
+    className={`flex-1 rounded-xl py-3 text-sm font-medium transition-colors ${
+      darkMode
+        ? "bg-green-900/30 text-green-300 hover:bg-green-900/50"
+        : "bg-green-50 text-green-700 hover:bg-green-100"
+    }`}
+  >
+    提出する
+  </button>
+
+</div>
 
 </div>
       </div>
