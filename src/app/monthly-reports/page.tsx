@@ -276,6 +276,18 @@ setSubmittedAt(
   report.submittedAt || null
 );
 
+setHasVictoryGenerated(
+  !!report.victorySummary
+);
+
+setHasDefeatGenerated(
+  !!report.defeatSummary
+);
+
+setHasTestimonyGenerated(
+  !!report.testimonySummary
+);
+
 } else {
 
   setActualCount("");
