@@ -10,8 +10,9 @@ export async function POST(
 ) {
 
  const {
-  type,
-  data,
+  victories,
+  defeats,
+  testimonies,
 } = await request.json();
 
  console.log(
