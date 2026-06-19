@@ -87,6 +87,21 @@ const [
 ] = useState("");
 
 const [
+  generatingVictory,
+  setGeneratingVictory
+] = useState(false);
+
+const [
+  generatingDefeat,
+  setGeneratingDefeat
+] = useState(false);
+
+const [
+  generatingTestimony,
+  setGeneratingTestimony
+] = useState(false);
+
+const [
   hasVictoryGenerated,
   setHasVictoryGenerated
 ] = useState(false);
@@ -395,7 +410,7 @@ const generateVictory = async () => {
 
   if (!user) return;
 
-  setGenerating(true);
+  setGeneratingVictory(true);
 
   const snapshot =
     await getDocs(
@@ -455,7 +470,9 @@ const generateVictory = async () => {
   true
 );
 
-  setGenerating(false);
+  setGeneratingVictory(
+  false
+);
 
 };
 
@@ -463,7 +480,7 @@ const generateDefeat = async () => {
 
   if (!user) return;
 
-  setGenerating(true);
+  setGeneratingDefeat(true);
 
   const snapshot =
     await getDocs(
@@ -523,7 +540,9 @@ const generateDefeat = async () => {
     true
   );
 
-  setGenerating(false);
+  setGeneratingDefeat(
+  false
+);
 
 };
 
@@ -531,7 +550,7 @@ const generateTestimony = async () => {
 
   if (!user) return;
 
-  setGenerating(true);
+  setGeneratingTestimony(true);
 
   const snapshot =
     await getDocs(
@@ -591,7 +610,7 @@ setHasTestimonyGenerated(
   true
 );
 
-  setGenerating(false);
+  setGeneratingTestimony(false);
 
 };
 
@@ -865,9 +884,11 @@ setHasTestimonyGenerated(
         : "text-blue-600"
     }`}
   >
-    {hasVictoryGenerated
-      ? "🔄 再生成"
-      : "🤖 AI生成"}
+   {generatingVictory
+  ? "生成中..."
+  : hasVictoryGenerated
+  ? "🔄 再生成"
+  : "🤖 AI生成"}
   </button>
 
 </div>
@@ -910,9 +931,11 @@ setHasTestimonyGenerated(
         : "text-blue-600"
     }`}
   >
-    {hasDefeatGenerated
-      ? "🔄 再生成"
-      : "🤖 AI生成"}
+   {generatingDefeat
+  ? "生成中..."
+  : hasDefeatGenerated
+  ? "🔄 再生成"
+  : "🤖 AI生成"}
   </button>
 
 </div>
@@ -955,9 +978,11 @@ setHasTestimonyGenerated(
         : "text-blue-600"
     }`}
   >
-    {hasTestimonyGenerated
-      ? "🔄 再生成"
-      : "🤖 AI生成"}
+   {generatingTestimony
+  ? "生成中..."
+  : hasTestimonyGenerated
+  ? "🔄 再生成"
+  : "🤖 AI生成"}
   </button>
 
 </div>
@@ -1030,6 +1055,15 @@ setHasTestimonyGenerated(
 
       if (!user) return;
 
+       if (
+    submitted &&
+    !window.confirm(
+      "再提出しますか？提出日時が更新されます。"
+    )
+  ) {
+    return;
+  }
+
       await setDoc(
         doc(
           db,
@@ -1087,7 +1121,9 @@ setHasTestimonyGenerated(
         : "bg-green-50 text-green-700 hover:bg-green-100"
     }`}
   >
-    提出する
+   {submitted
+  ? "再提出する"
+  : "提出する"}
   </button>
 
 </div>
