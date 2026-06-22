@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-import { auth, db } from "../lib/firebase";
+import { db } from "../lib/firebase";
 
-import { onAuthStateChanged } from "firebase/auth";
+import { useRouter } from "next/navigation";
 
 import {
   collection,
@@ -14,6 +14,9 @@ import {
 import Link from "next/link";
 
 export default function AdminPage() {
+
+   const router =
+    useRouter();
 
   const [submittedReports,
   setSubmittedReports] =
@@ -55,25 +58,24 @@ const [darkMode, setDarkMode] =
 
   });
 
-
   useEffect(() => {
 
-   const unsubscribe =
-  onAuthStateChanged(
-    auth,
-    async (user) => {
+  const auth =
+    localStorage.getItem(
+      "staffAuth"
+    );
 
-      if (!user)
-        return;
+  if (!auth) {
 
-    }
-  );
+    router.push(
+      "/manager"
+    );
 
-    return () =>
-      unsubscribe();
+  }
 
-  }, []);
+}, []);
 
+ 
   useEffect(() => {
 
   const savedMode =
@@ -142,47 +144,32 @@ const [darkMode, setDarkMode] =
     
   <div className="mb-8 flex items-center justify-between">
 
-  <Link
-    href="/"
-    className="text-sm text-gray-400"
+  <h1 className="text-3xl font-bold">
+    スタッフ管理
+  </h1>
+
+  <button
+    onClick={() => {
+
+      localStorage.removeItem(
+        "staffAuth"
+      );
+
+      router.push(
+        "/manager"
+      );
+
+    }}
+    className={`text-sm ${
+      darkMode
+        ? "text-gray-300"
+        : "text-gray-500"
+    }`}
   >
-    ← ホームへ戻る
-  </Link>
-
-  <div className="flex items-center gap-4">
-
-    <button
-      onClick={() => {
-
-        const newMode =
-          !darkMode;
-
-        setDarkMode(
-          newMode
-        );
-
-        localStorage.setItem(
-          "darkMode",
-          JSON.stringify(
-            newMode
-          )
-        );
-
-      }}
-    >
-      {darkMode
-        ? "☀️"
-        : "🌙"}
-    </button>
-
-  </div>
+    ログアウト
+  </button>
 
 </div>
-
-
-      <h1 className="text-3xl font-bold">
-        スタッフ管理
-      </h1>
 
      
 <hr className="my-8" />
