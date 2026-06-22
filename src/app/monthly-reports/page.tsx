@@ -178,8 +178,7 @@ const [
   nextTargetCount,
   nextTargetAmount,
   user,
-  selectedMonth,
-]);
+  ]);
 
   useEffect(() => {
 
@@ -233,6 +232,20 @@ const [
         );
 
       }
+
+      if (
+  goalSnap.exists()
+) {
+
+  setGoal(
+    goalSnap.data()
+  );
+
+} else {
+
+  setGoal(null);
+
+}
 
       const reportSnap =
   await getDoc(
