@@ -142,11 +142,23 @@ const [darkMode, setDarkMode] =
 
   <div className="mx-auto max-w-4xl">
     
-  <div className="mb-8 flex items-center justify-between">
+ <div className="mb-8 flex items-center justify-between">
 
-  <h1 className="text-3xl font-bold">
-    スタッフ管理
-  </h1>
+  <div>
+
+    <div className="text-3xl">
+      🍃
+    </div>
+
+    <h1 className="text-2xl font-bold">
+      あしあと
+    </h1>
+
+    <p className="text-sm text-gray-500">
+      月末レポート管理
+    </p>
+
+  </div>
 
   <button
     onClick={() => {
@@ -302,61 +314,76 @@ const [darkMode, setDarkMode] =
 
   })
   .map(
-  (report) => (
+    (report) => (
 
-   <div
-  key={report.id}
-  className={`mb-4 rounded-2xl border p-4 transition-colors ${
-    darkMode
-      ? "border-gray-700 bg-gray-800"
-      : "border-gray-200 bg-white"
-  }`}
->
+      <Link
+        key={report.id}
+        href={`/monthly-reports/pdf?uid=${report.uid}&month=${report.month}`}
+        className={`mb-3 block rounded-3xl border p-5 transition-all hover:scale-[1.01] ${
+          darkMode
+            ? "border-gray-700 bg-gray-800 hover:bg-gray-700"
+            : "border-gray-100 bg-white hover:bg-gray-50"
+        }`}
+      >
 
-      <p className="font-semibold">
-  名前：{report.name}
-</p>
+        <div className="flex items-center justify-between">
 
-    <p
-  className={`${
-    darkMode
-      ? "text-gray-300"
-      : "text-gray-600"
-  }`}
->
-  班：{report.team}
-</p>
+         <div>
 
-     <p
-  className={`text-sm ${
-    darkMode
-      ? "text-gray-400"
-      : "text-gray-500"
-  }`}
->
-  提出日時：
-        {report.submittedAt?.toDate
-          ? report.submittedAt
-              .toDate()
-              .toLocaleString()
-          : "-"
-        }
-      </p>
+  <div className="flex items-center gap-2">
 
-<Link
-  href={`/monthly-reports/pdf?uid=${report.uid}&month=${report.month}`}
-  className={`mt-3 inline-block text-sm font-medium ${
-    darkMode
-      ? "text-blue-300"
-      : "text-blue-600"
-  }`}
->
-  詳細を見る →
-</Link>
+    <span>
+      👣
+    </span>
 
-    </div>
+    <span className="font-semibold">
+      {report.name}
+    </span>
 
-  )
+    <span
+      className={`rounded-full px-2 py-1 text-xs ${
+        darkMode
+          ? "bg-gray-700 text-gray-300"
+          : "bg-gray-100 text-gray-600"
+      }`}
+    >
+      {report.team}
+    </span>
+
+  </div>
+
+</div>
+
+          <div
+            className={`text-xl ${
+              darkMode
+                ? "text-gray-500"
+                : "text-gray-400"
+            }`}
+          >
+            ›
+          </div>
+
+        </div>
+
+        <div
+          className={`mt-3 text-xs ${
+            darkMode
+              ? "text-gray-500"
+              : "text-gray-400"
+          }`}
+        >
+        提出：
+  {report.submittedAt?.toDate
+    ? report.submittedAt
+        .toDate()
+        .toLocaleString()
+    : "-"}
+</div>
+
+      </Link>
+
+    )
 )}
 
   </div>

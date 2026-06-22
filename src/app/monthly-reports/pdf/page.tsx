@@ -139,7 +139,7 @@ if (!report)
 
   <div className="mx-auto max-w-4xl">
 
-<div className="mb-8 flex items-center justify-between">
+<div className="mb-8 flex items-center justify-between print:hidden">
 
  <button
   onClick={() => router.back()}
