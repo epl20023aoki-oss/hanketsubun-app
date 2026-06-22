@@ -186,7 +186,7 @@ const [darkMode, setDarkMode] =
      
 <hr className="my-8" />
 
-<div className="mt-6 mb-6 flex gap-4">
+<div className="mt-6 mb-6 grid gap-4 md:grid-cols-2">
 
   <div className="flex-1">
 
