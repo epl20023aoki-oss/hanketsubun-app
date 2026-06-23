@@ -369,8 +369,8 @@ return (
 
 </div>
 
-      <h1 className="text-sm font-medium">
-        5月の振り返り
+       <h1 className="text-3xl font-light tracking-wide">
+        今日の振り返り
       </h1>
 
       <button
@@ -476,9 +476,7 @@ return (
 
 </section>
 
-      <h2 className="text-3xl font-light tracking-wide">
-        今日の振り返り
-      </h2>
+     
 
     {/* 今日の目標 */}
     <section className="space-y-6">
