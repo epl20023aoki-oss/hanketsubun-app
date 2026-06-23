@@ -369,7 +369,7 @@ return (
 
 </div>
 
-       <h1 className="text-3xl font-light tracking-wide">
+       <h1 className="text-xl font-light tracking-wide">
         今日の振り返り
       </h1>
 
