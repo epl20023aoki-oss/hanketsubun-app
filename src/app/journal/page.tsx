@@ -39,6 +39,11 @@ const [goal, setGoal] = useState("");
 const [victory, setVictory] = useState("");
 const [defeat, setDefeat] = useState("");
 const [testimony, setTestimony] = useState("");
+const [
+  testimonySubmitted,
+  setTestimonySubmitted
+] = useState(false);
+
 const [filterTag, setFilterTag] =
   useState("");
   const [reflection, setReflection] =
@@ -222,6 +227,10 @@ const submitTestimony = async () => {
     }
   );
 
+  setTestimonySubmitted(
+  true
+);
+
   alert(
     "証を提出しました"
   );
@@ -235,6 +244,52 @@ const submitTestimony = async () => {
       .toISOString()
       .split("T")[0]
   );
+
+useEffect(() => {
+
+  const checkSubmitted =
+    async () => {
+
+      if (!user)
+        return;
+
+      const snapshot =
+        await getDocs(
+          collection(
+            db,
+            "submitted_testimonies"
+          )
+        );
+
+      const exists =
+        snapshot.docs.some(
+          (doc) => {
+
+            const data =
+              doc.data();
+
+            return (
+              data.uid ===
+                user.uid &&
+              data.date ===
+                selectedDate
+            );
+
+          }
+        );
+
+      setTestimonySubmitted(
+        exists
+      );
+
+    };
+
+  checkSubmitted();
+
+}, [
+  user,
+  selectedDate,
+]);
 
  useEffect(() => {
     if (!user) return;
@@ -910,15 +965,22 @@ await setDoc(
     </h3>
 
     <button
-     onClick={submitTestimony}
-    className={`rounded-xl px-3 py-2 text-sm transition-colors ${
-  darkMode
-    ? "bg-yellow-800 text-yellow-100 hover:bg-yellow-700"
-    : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
-}`}
-    >
-      📤 提出
-    </button>
+  onClick={submitTestimony}
+  disabled={testimonySubmitted}
+  className={`rounded-xl px-3 py-2 text-sm transition-colors ${
+    testimonySubmitted
+      ? darkMode
+        ? "bg-green-800 text-green-100"
+        : "bg-green-100 text-green-700"
+      : darkMode
+      ? "bg-yellow-800 text-yellow-100 hover:bg-yellow-700"
+      : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+  }`}
+>
+  {testimonySubmitted
+    ? "✅ 提出済み"
+    : "📤 提出"}
+</button>
 
   </div>
 
