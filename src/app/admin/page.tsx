@@ -22,6 +22,16 @@ export default function AdminPage() {
   setSubmittedReports] =
   useState<any[]>([]);
 
+  const [
+  submittedTestimonies,
+  setSubmittedTestimonies
+] = useState<any[]>([]);
+
+const [
+  expandedTestimonies,
+  setExpandedTestimonies
+] = useState<string[]>([]);
+
   const [selectedMonth,
   setSelectedMonth] =
   useState(
@@ -108,7 +118,6 @@ const [darkMode, setDarkMode] =
   setSubmittedReports([]);
   return;
 } 
-
     const snapshot =
       await getDocs(
         collection(
@@ -129,10 +138,39 @@ const [darkMode, setDarkMode] =
     );
 
   };
+const fetchSubmittedTestimonies =
+  async () => {
+
+    const snapshot =
+      await getDocs(
+        collection(
+          db,
+          "submitted_testimonies"
+        )
+      );
+
+    const testimonyData =
+  snapshot.docs
+    .map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }))
+    .sort(
+  (a: any, b: any) =>
+    (b.submittedAt?.toDate?.().getTime() || 0) -
+    (a.submittedAt?.toDate?.().getTime() || 0)
+)
+
+setSubmittedTestimonies(
+  testimonyData
+);
+
+  };
 
   useEffect(() => {
 
   fetchSubmittedReports();
+  fetchSubmittedTestimonies();
 
 }, [selectedMonth]);
 
@@ -198,7 +236,7 @@ const [darkMode, setDarkMode] =
         : ""
     }`}
   >
-    📝 証一覧
+    🌱 証一覧
   </button>
 
 </div>
@@ -341,10 +379,6 @@ const [darkMode, setDarkMode] =
   </span>
 </p>
 
-<p className="mb-4 text-xl">
-  提出状況
-</p>
-
 {submittedReports
   .filter((report) => {
 
@@ -441,27 +475,155 @@ const [darkMode, setDarkMode] =
 
 {activeTab === "testimonies" && (
 
-  <div
-    className={`rounded-3xl p-6 ${
+  <div>
+
+      {submittedTestimonies.length === 0 && (
+
+      <p
+        className={`text-sm ${
+          darkMode
+            ? "text-gray-400"
+            : "text-gray-500"
+        }`}
+      >
+        まだ証の提出はありません
+      </p>
+
+    )}
+
+   {submittedTestimonies
+  .filter((item) => {
+
+  const matchName =
+    item.name?.includes(searchName);
+
+  const matchTeam =
+    item.team?.includes(searchTeam);
+
+  const matchMonth =
+    item.date?.startsWith(
+      selectedMonth
+    );
+
+  return (
+    matchName &&
+    matchTeam &&
+    matchMonth
+  );
+
+})
+
+  .map(
+    (item) => (
+
+        <div
+          key={item.id}
+          className={`mb-3 rounded-3xl border p-5 ${
+            darkMode
+              ? "border-gray-700 bg-gray-800"
+              : "border-gray-100 bg-white"
+          }`}
+        >
+
+          <div className="mb-3 flex items-center gap-2">
+
+            <span>
+  🌱
+</span>
+
+            <span className="font-semibold">
+              {item.name}
+            </span>
+
+            <span
+              className={`rounded-full px-2 py-1 text-xs ${
+                darkMode
+                  ? "bg-gray-700 text-gray-300"
+                  : "bg-gray-100 text-gray-600"
+              }`}
+            >
+              {item.team}
+            </span>
+
+          </div>
+
+          <>
+  <p
+    className={`whitespace-pre-wrap text-sm ${
       darkMode
-        ? "bg-gray-800"
-        : "bg-white"
+        ? "text-gray-300"
+        : "text-gray-700"
     }`}
   >
+    {expandedTestimonies.includes(item.id)
+      ? item.testimony
+      : item.testimony.length > 100
+      ? item.testimony.slice(0, 100) + "..."
+      : item.testimony}
+  </p>
 
-    <p className="font-semibold">
-      📝 証一覧
-    </p>
+  {item.testimony.length > 100 && (
 
-    <p
-      className={`mt-2 text-sm ${
-        darkMode
-          ? "text-gray-400"
-          : "text-gray-500"
-      }`}
+    <button
+      onClick={() => {
+
+        if (
+          expandedTestimonies.includes(
+            item.id
+          )
+        ) {
+
+          setExpandedTestimonies(
+            expandedTestimonies.filter(
+              (id) =>
+                id !== item.id
+            )
+          );
+
+        } else {
+
+          setExpandedTestimonies([
+            ...expandedTestimonies,
+            item.id,
+          ]);
+
+        }
+
+      }}
+     className={`mt-2 text-sm font-medium ${
+  darkMode
+    ? "text-green-300"
+    : "text-green-600"
+}`}
     >
-      まだ証の提出はありません
-    </p>
+      {expandedTestimonies.includes(
+        item.id
+      )
+        ? "▲ 閉じる"
+        : "▼ 続きを読む"}
+    </button>
+
+  )}
+</>
+
+          <div
+            className={`mt-3 text-xs ${
+              darkMode
+                ? "text-gray-500"
+                : "text-gray-400"
+            }`}
+          >
+            {item.submittedAt?.toDate
+              ? item.submittedAt
+                  .toDate()
+                  .toLocaleString()
+              : "-"}
+          </div>
+
+        </div>
+
+      )
+    )}
 
   </div>
 
