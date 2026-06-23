@@ -741,86 +741,119 @@ setHasTestimonyGenerated(
 
 <div
   ref={reportRef}
-  style={{
-    backgroundColor: "#ffffff",
-    color: "#000000",
-  }}
-  className="rounded-3xl p-6"
+  className={`rounded-3xl p-6 ${
+    darkMode
+      ? "bg-gray-800 text-white"
+      : "bg-white text-gray-900"
+  }`}
 >
 
-  <p className="mb-2 text-sm text-gray-400">
+ <p
+  className={`mb-2 text-sm ${
+    darkMode
+      ? "text-gray-400"
+      : "text-gray-500"
+  }`}
+>
     対象月
   </p>
 
-  <input
-    type="month"
-    value={selectedMonth}
-    onChange={(e) =>
-      setSelectedMonth(
-        e.target.value
-      )
-    }
-    className="mb-6 w-full rounded-2xl border p-4"
-  />
+ <input
+  type="month"
+  value={selectedMonth}
+  onChange={(e) =>
+    setSelectedMonth(
+      e.target.value
+    )
+  }
+  className={`mb-6 w-full rounded-2xl border p-4 ${
+    darkMode
+      ? "border-gray-700 bg-gray-800 text-white"
+      : "border-gray-300 bg-white text-gray-900"
+  }`}
+/>
 
-  <p className="text-sm text-gray-400">
-    班
-  </p>
+   <p
+  className={`text-sm ${
+    darkMode
+      ? "text-gray-400"
+      : "text-gray-500"
+  }`}
+>
+  班
+</p>
 
-  <p className="mb-4 mt-1 text-lg">
-    {team || "-"}
-  </p>
+<p className="mb-4 mt-1 text-lg">
+  {team || "-"}
+</p>
 
-  <p className="text-sm text-gray-400">
-    名前
-  </p>
+<p
+  className={`text-sm ${
+    darkMode
+      ? "text-gray-400"
+      : "text-gray-500"
+  }`}
+>
+  名前
+</p>
 
-  <p className="mb-6 mt-1 text-lg">
-    {name || "-"}
-  </p>
+<p className="mb-6 mt-1 text-lg">
+  {name || "-"}
+</p>
 
-  <p className="text-sm text-gray-400">
-    今月の目標
-  </p>
+<p
+  className={`text-sm ${
+    darkMode
+      ? "text-gray-400"
+      : "text-gray-500"
+  }`}
+>
+  〈今月の目標〉
+</p>
 
-  {goal ? (
-    <>
-      <p className="mt-4 text-sm text-gray-400">
-        内的目標
-      </p>
-
-      <p className="mt-1">
-        {goal.innerGoal}
-      </p>
-
-      <p className="mt-4 text-sm text-gray-400">
-        目標件数
-      </p>
-
-      <p className="mt-1">
-        {goal.targetCount}件
-      </p>
-
-      <p className="mt-4 text-sm text-gray-400">
-        目標金額
-      </p>
-
-      <p className="mt-1">
-        ¥
-        {Number(
-          goal.targetAmount
-        ).toLocaleString()}
-      </p>
-    </>
-  ) : (
-    <p className="mt-4 text-gray-400">
-      月目標がありません
+{goal ? (
+  <>
+    <p
+      className={`mt-4 text-sm ${
+        darkMode
+          ? "text-gray-400"
+          : "text-gray-500"
+      }`}
+    >
+      内的目標
     </p>
-  )}
 
-<hr className="my-8" />
+    <p className="mt-1">
+      {goal.innerGoal}
+    </p>
+  </>
+) : (
+  <p
+    className={`mt-4 ${
+      darkMode
+        ? "text-gray-400"
+        : "text-gray-500"
+    }`}
+  >
+    月目標がありません
+  </p>
+)}
 
-<p className="mb-2 text-sm text-gray-400">
+<hr
+  className={`my-8 ${
+    darkMode
+      ? "border-gray-700"
+      : "border-gray-200"
+  }`}
+/>
+
+<p
+  className={`mb-2 text-sm ${
+    darkMode
+      ? "text-gray-400"
+      : "text-gray-500"
+  }`}
+>
   実績件数
 </p>
 
@@ -837,13 +870,23 @@ setHasTestimonyGenerated(
         e.target.value
       )
     }
-    className="flex-1 rounded-2xl border p-3"
+    className={`flex-1 rounded-2xl border p-3 ${
+      darkMode
+        ? "border-gray-700 bg-gray-800 text-white"
+        : "border-gray-300 bg-white text-gray-900"
+    }`}
     placeholder="実績件数"
   />
 
 </div>
 
-<p className="mb-2 text-sm text-gray-400">
+<p
+  className={`mb-2 text-sm ${
+    darkMode
+      ? "text-gray-400"
+      : "text-gray-500"
+  }`}
+>
   実績金額
 </p>
 
@@ -864,7 +907,11 @@ setHasTestimonyGenerated(
         e.target.value
       )
     }
-    className="flex-1 rounded-2xl border p-3"
+    className={`flex-1 rounded-2xl border p-3 ${
+      darkMode
+        ? "border-gray-700 bg-gray-800 text-white"
+        : "border-gray-300 bg-white text-gray-900"
+    }`}
     placeholder="実績金額"
   />
 
@@ -872,7 +919,13 @@ setHasTestimonyGenerated(
 
 <div className="mb-2 flex items-center justify-between">
 
-  <p className="text-sm text-gray-400">
+  <p
+    className={`text-sm ${
+      darkMode
+        ? "text-gray-400"
+        : "text-gray-500"
+    }`}
+  >
     勝利点
   </p>
 
@@ -897,11 +950,11 @@ setHasTestimonyGenerated(
         : "text-blue-600"
     }`}
   >
-   {generatingVictory
-  ? "生成中..."
-  : hasVictoryGenerated
-  ? "🔄 再生成"
-  : "🤖 AI生成"}
+    {generatingVictory
+      ? "生成中..."
+      : hasVictoryGenerated
+      ? "🔄 再生成"
+      : "🤖 AI生成"}
   </button>
 
 </div>
@@ -913,15 +966,25 @@ setHasTestimonyGenerated(
       e.target.value
     )
   }
-  className="mb-6 w-full rounded-2xl border p-4"
+  className={`mb-6 w-full rounded-2xl border p-4 ${
+    darkMode
+      ? "border-gray-700 bg-gray-800 text-white"
+      : "border-gray-300 bg-white text-gray-900"
+  }`}
   rows={6}
 />
 
 <div className="mb-2 flex items-center justify-between">
 
-  <p className="text-sm text-gray-400">
-    敗北点
-  </p>
+  <p
+  className={`text-sm ${
+    darkMode
+      ? "text-gray-400"
+      : "text-gray-500"
+  }`}
+>
+  敗北点
+</p>
 
   <button
     onClick={() => {
@@ -960,15 +1023,25 @@ setHasTestimonyGenerated(
       e.target.value
     )
   }
-  className="mb-6 w-full rounded-2xl border p-4"
+  className={`mb-6 w-full rounded-2xl border p-4 ${
+    darkMode
+      ? "border-gray-700 bg-gray-800 text-white"
+      : "border-gray-300 bg-white text-gray-900"
+  }`}
   rows={6}
 />
 
 <div className="mb-2 flex items-center justify-between">
 
-  <p className="text-sm text-gray-400">
-    神様との出会い・証
-  </p>
+ <p
+  className={`text-sm ${
+    darkMode
+      ? "text-gray-400"
+      : "text-gray-500"
+  }`}
+>
+  神様との出会い・証
+</p>
 
   <button
     onClick={() => {
@@ -1007,7 +1080,11 @@ setHasTestimonyGenerated(
       e.target.value
     )
   }
-  className="w-full rounded-2xl border p-4"
+  className={`w-full rounded-2xl border p-4 ${
+    darkMode
+      ? "border-gray-700 bg-gray-800 text-white"
+      : "border-gray-300 bg-white text-gray-900"
+  }`}
   rows={8}
 />
 
@@ -1017,7 +1094,11 @@ setHasTestimonyGenerated(
   来月の目標
 </h2>
 
-<p className="mb-2 text-sm text-gray-400">
+<p className={`mb-2 text-sm ${
+  darkMode
+    ? "text-gray-400"
+    : "text-gray-500"
+}`}>
   内的目標
 </p>
 
