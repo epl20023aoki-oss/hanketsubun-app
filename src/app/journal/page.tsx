@@ -24,6 +24,7 @@ import {
   getDoc,
   collection,
   getDocs,
+  addDoc,
 } from "firebase/firestore";
 
 
@@ -57,6 +58,12 @@ const recordedDateSet =
 
 const [user, setUser] =
   useState<any>(null);
+
+const [name, setName] =
+  useState("");
+
+const [team, setTeam] =
+  useState("");
 
 useEffect(() => {
 
@@ -95,6 +102,42 @@ if (
 
 }
 
+console.log(
+  "name:",
+  name
+);
+
+console.log(
+  "team:",
+  team
+);
+
+const profileSnap =
+  await getDoc(
+    doc(
+      db,
+      "users",
+      currentUser.uid
+    )
+  );
+
+if (
+  profileSnap.exists()
+) {
+
+  const profile =
+    profileSnap.data();
+
+  setName(
+    profile.name || ""
+  );
+
+  setTeam(
+    profile.team || ""
+  );
+
+}
+
       }
     );
 
@@ -127,6 +170,63 @@ const [selectedTags, setSelectedTags] =
 
     setLogs(logsData);
   };
+
+const submitTestimony = async () => {
+
+  if (!user) return;
+
+  if (!testimony.trim()) {
+
+    alert(
+      "証を入力してください"
+    );
+
+    return;
+
+  }
+
+  const confirmed =
+    window.confirm(
+      "この証をスタッフへ提出しますか？"
+    );
+
+  if (!confirmed) return;
+
+  const profileSnap =
+    await getDoc(
+      doc(
+        db,
+        "users",
+        user.uid
+      )
+    );
+
+  const profile =
+    profileSnap.data();
+
+  await addDoc(
+    collection(
+      db,
+      "submitted_testimonies"
+    ),
+    {
+      uid: user.uid,
+      name:
+        profile?.name || "",
+      team:
+        profile?.team || "",
+      testimony,
+      date: selectedDate,
+      submittedAt:
+        new Date(),
+    }
+  );
+
+  alert(
+    "証を提出しました"
+  );
+
+};
 
   const [saving, setSaving] = useState(false);
   const [selectedDate, setSelectedDate] =
@@ -801,10 +901,26 @@ await setDoc(
     </section>
 
     {/* 神様との出会い・証 */}
-    <section className="space-y-6">
-      <h3 className="text-lg font-medium">
-        神様との出会い・証
-      </h3>
+   <section className="space-y-6">
+
+  <div className="flex items-center justify-between">
+
+    <h3 className="text-lg font-medium">
+      神様との出会い・証
+    </h3>
+
+    <button
+     onClick={submitTestimony}
+    className={`rounded-xl px-3 py-2 text-sm transition-colors ${
+  darkMode
+    ? "bg-yellow-800 text-yellow-100 hover:bg-yellow-700"
+    : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+}`}
+    >
+      📤 提出
+    </button>
+
+  </div>
 
       <textarea
   value={testimony}
@@ -980,53 +1096,61 @@ setSelectedTags(
   placeholder="自由タグを追加"
 />
 
-<button
+<div className="mt-2 flex justify-end">
+
+  <button
     onClick={async () => {
 
-    if (
-      !customTag.trim()
-    )
-      return;
-
-    if (
-      customTags.includes(
-        customTag
+      if (
+        !customTag.trim()
       )
-    )
-      return;
+        return;
 
-    const updatedCustomTags = [
-  ...customTags,
-  customTag,
-];
+      if (
+        customTags.includes(
+          customTag
+        )
+      )
+        return;
 
-setCustomTags(
-  updatedCustomTags
-);
+      const updatedCustomTags = [
+        ...customTags,
+        customTag,
+      ];
 
-if (!user) return;
+      setCustomTags(
+        updatedCustomTags
+      );
 
-await setDoc(
-  doc(
-    db,
-    "users",
-    user.uid,
-    "settings",
-    "custom_tags"
-  ),
-  {
-    tags:
-      updatedCustomTags,
-  }
-);
+      if (!user) return;
 
-setCustomTag("");
+      await setDoc(
+        doc(
+          db,
+          "users",
+          user.uid,
+          "settings",
+          "custom_tags"
+        ),
+        {
+          tags:
+            updatedCustomTags,
+        }
+      );
 
-  }}
-  className="mt-2 rounded-xl bg-blue-600 px-4 py-2 text-white"
->
-  タグ追加
-</button>
+      setCustomTag("");
+
+    }}
+ className={`rounded-xl px-4 py-2 transition-colors ${
+  darkMode
+    ? "bg-sky-800 text-sky-100 hover:bg-sky-700"
+    : "bg-sky-200 text-sky-800 hover:bg-sky-300"
+}`}
+  >
+    タグ追加
+  </button>
+
+</div>
 
     </section>
 

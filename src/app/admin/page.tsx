@@ -38,6 +38,11 @@ export default function AdminPage() {
   setSearchTeam] =
   useState("");
 
+  const [
+  activeTab,
+  setActiveTab
+] = useState("reports");
+
 const [darkMode, setDarkMode] =
   useState(() => {
 
@@ -157,6 +162,46 @@ const [darkMode, setDarkMode] =
     <p className="text-sm text-gray-500">
       月末レポート管理
     </p>
+
+<div
+  className={`mb-6 flex rounded-2xl p-1 ${
+    darkMode
+      ? "bg-gray-800"
+      : "bg-gray-100"
+  }`}
+>
+
+  <button
+    onClick={() =>
+      setActiveTab("reports")
+    }
+    className={`flex-1 rounded-xl px-4 py-2 text-sm ${
+      activeTab === "reports"
+        ? darkMode
+          ? "bg-gray-700 text-white"
+          : "bg-white shadow-sm"
+        : ""
+    }`}
+  >
+    👣 月末レポート
+  </button>
+
+  <button
+    onClick={() =>
+      setActiveTab("testimonies")
+    }
+    className={`flex-1 rounded-xl px-4 py-2 text-sm ${
+      activeTab === "testimonies"
+        ? darkMode
+          ? "bg-gray-700 text-white"
+          : "bg-white shadow-sm"
+        : ""
+    }`}
+  >
+    📝 証一覧
+  </button>
+
+</div>
 
   </div>
 
@@ -279,6 +324,10 @@ const [darkMode, setDarkMode] =
 
 </div>
 
+{activeTab === "reports" && (
+
+<>
+
 <p
   className={`mb-4 text-sm ${
     darkMode
@@ -384,6 +433,38 @@ const [darkMode, setDarkMode] =
       </Link>
 
     )
+)}
+
+</>
+
+)}
+
+{activeTab === "testimonies" && (
+
+  <div
+    className={`rounded-3xl p-6 ${
+      darkMode
+        ? "bg-gray-800"
+        : "bg-white"
+    }`}
+  >
+
+    <p className="font-semibold">
+      📝 証一覧
+    </p>
+
+    <p
+      className={`mt-2 text-sm ${
+        darkMode
+          ? "text-gray-400"
+          : "text-gray-500"
+      }`}
+    >
+      まだ証の提出はありません
+    </p>
+
+  </div>
+
 )}
 
   </div>
