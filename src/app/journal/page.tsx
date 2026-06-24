@@ -1259,6 +1259,29 @@ setSelectedTags(
     >
       解除
     </button>
+
+    {filterTag && (
+
+  <p
+    className={`mb-3 text-sm ${
+      darkMode
+        ? "text-gray-400"
+        : "text-gray-500"
+    }`}
+  >
+    🏷️ {filterTag}
+    ：
+    {
+      logs.filter((log) =>
+        log.tags?.includes(
+          filterTag
+        )
+      ).length
+    }件
+  </p>
+
+)}
+
   </div>
 
   <div className="space-y-2">
@@ -1275,13 +1298,25 @@ setSelectedTags(
           new Date(b.date).getTime() -
           new Date(a.date).getTime()
       )
-      .slice(0, 7)
+      .slice(
+  0,
+  filterTag
+    ? logs.length
+    : 7
+)
       .map((log) => (
         <div
           key={log.id}
-          onClick={async () => {
-            setSelectedDate(log.id);
-          }}
+         onClick={async () => {
+
+  setSelectedDate(log.id);
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+
+}}
           className={`cursor-pointer rounded-2xl p-4 shadow-sm transition-all duration-200 hover:bg-gray-100 hover:-translate-y-0.5 ${
             darkMode
               ? "bg-gray-800/80 text-white"

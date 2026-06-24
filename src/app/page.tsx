@@ -87,18 +87,10 @@ const [latestGoal, setLatestGoal] =
   useRef<HTMLTextAreaElement>(null);
 
 const [darkMode, setDarkMode] =
-  useState(() => {
-    
+  useState(false);
 
-    if (typeof window !== "undefined") {
-      return (
-        localStorage.getItem("darkMode") ===
-        "true"
-      );
-    }
-
-    return false;
-  });
+const [mounted, setMounted] =
+  useState(false);
 
   const [reflection, setReflection] =
   useState("");
@@ -386,6 +378,31 @@ useEffect(() => {
 
 }, [reflection, user]);
 
+useEffect(() => {
+
+  const savedMode =
+    localStorage.getItem(
+      "darkMode"
+    );
+
+  if (savedMode) {
+
+    setDarkMode(
+      JSON.parse(savedMode)
+    );
+
+  }
+
+  setMounted(true);
+
+}, []);
+
+if (!mounted) {
+
+  return null;
+
+}
+
 return (
 
    <main
@@ -398,17 +415,45 @@ return (
 
 {/* 上部バー */}
 <header
-  className={`sticky top-0 z-10 border-b backdrop-blur transition-all ${
+  className={`relative sticky top-0 z-10 overflow-hidden border-b backdrop-blur transition-all ${
     darkMode
-      ? "border-gray-800 bg-gray-900/80"
-      : "border-gray-200 bg-white/80"
+      ? "border-gray-800 bg-gray-900/90"
+      : "border-gray-200 bg-white/90"
   }`}
 >
+{!darkMode && (
+
+  <img
+    src="/images/seedling.png"
+    alt=""
+   className="
+  pointer-events-none
+  absolute
+  right-4
+  top-2
+  h-24
+  w-auto
+  opacity-10
+  blur-[1px]
+  select-none
+"
+  />
+
+)}
 
   <div className="flex items-center justify-between">
 
+   <div className="relative">
+
+  <div className="flex items-center gap-3">
+
+    <span className="text-3xl">
+      🌱
+    </span>
+
     <div>
-      <h1 className="text-2xl font-light tracking-wide">
+
+      <h1 className="text-3xl font-light tracking-wide">
         あしあと
       </h1>
 
@@ -421,7 +466,12 @@ return (
       >
         今日の歩みを次に繋げる
       </p>
+
     </div>
+
+  </div>
+
+</div>
 
     <button
       onClick={() =>
