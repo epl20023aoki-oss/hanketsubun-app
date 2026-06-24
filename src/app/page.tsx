@@ -445,31 +445,33 @@ return (
 
    <div className="relative">
 
-  <div className="flex items-center gap-3">
+ <div className="flex items-center gap-3">
 
-    <span className="text-3xl">
-      🌱
-    </span>
+  <img
+    src="/images/seedling-logo.png"
+    alt="あしあと"
+    className="h-12 w-12 object-contain"
+  />
 
-    <div>
+  <div>
 
-      <h1 className="text-3xl font-light tracking-wide">
-        あしあと
-      </h1>
+    <h1 className="text-3xl font-light tracking-wide">
+      あしあと
+    </h1>
 
-      <p
-        className={`text-xs ${
-          darkMode
-            ? "text-gray-400"
-            : "text-gray-500"
-        }`}
-      >
-        今日の歩みを次に繋げる
-      </p>
-
-    </div>
+    <p
+      className={`text-xs ${
+        darkMode
+          ? "text-gray-400"
+          : "text-gray-500"
+      }`}
+    >
+      今日の歩みを次に繋げる
+    </p>
 
   </div>
+
+</div>
 
 </div>
 
