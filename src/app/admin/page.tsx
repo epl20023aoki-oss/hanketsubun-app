@@ -34,11 +34,7 @@ const [
 
   const [selectedMonth,
   setSelectedMonth] =
-  useState(
-    new Date()
-      .toISOString()
-      .slice(0, 7)
-  );
+  useState("");
 
   const [searchName,
   setSearchName] =
@@ -167,6 +163,29 @@ setSubmittedTestimonies(
 
   };
 
+useEffect(() => {
+
+  const savedMonth =
+    localStorage.getItem(
+      "adminSelectedMonth"
+    );
+
+  if (savedMonth) {
+
+    setSelectedMonth(savedMonth);
+
+  } else {
+
+    setSelectedMonth(
+      new Date()
+        .toISOString()
+        .slice(0, 7)
+    );
+
+  }
+
+}, []);
+
   useEffect(() => {
 
   fetchSubmittedReports();
@@ -286,11 +305,18 @@ setSubmittedTestimonies(
     <input
       type="month"
       value={selectedMonth}
-      onChange={(e) =>
-        setSelectedMonth(
-          e.target.value
-        )
-      }
+     onChange={(e) => {
+
+  setSelectedMonth(
+    e.target.value
+  );
+
+  localStorage.setItem(
+    "adminSelectedMonth",
+    e.target.value
+  );
+
+}}
       className={`w-full rounded-xl border px-4 py-2 ${
         darkMode
           ? "border-gray-700 bg-gray-800 text-white"
