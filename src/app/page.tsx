@@ -622,7 +622,7 @@ return (
   }`}
 >
 
-            今日の記録
+            🌱今日の記録🌱
           </p>
 
           <h2 className="mt-2 text-2xl">
@@ -655,7 +655,12 @@ return (
       {team}
     </p>
 
-    <p className="mt-4 text-xs text-gray-400">
+    <p className={`mt-4 text-xs ${
+          darkMode
+            ? "text-green-400"
+            : "text-green-600"
+        }`}
+      >
       編集 →
     </p>
   </div>
@@ -751,7 +756,12 @@ return (
           latestGoal.targetAmount
         ).toLocaleString()}
       </p>
-      <p className="mt-4 text-xs text-gray-400">
+      <p className={`mt-4 text-xs ${
+          darkMode
+            ? "text-green-400"
+            : "text-green-600"
+        }`}
+      >
   編集 →
 </p>
     </>
@@ -816,11 +826,17 @@ return (
       </p>
 
       <p className="mt-4 text-lg leading-8">
-        今月の振り返りを作成
+        月末レポート提出
       </p>
 
-      <p className="mt-4 text-xs text-gray-400">
-        AIで下書きを生成 →
+      <p
+        className={`mt-4 text-xs ${
+          darkMode
+            ? "text-green-400"
+            : "text-green-600"
+        }`}
+      >
+        🌱  今月の振り返りを作成　→
       </p>
 
     </div>
@@ -887,7 +903,12 @@ return (
         月末レポート履歴
       </p>
 
-      <p className="mt-4 text-xs text-gray-400">
+      <p className={`mt-4 text-xs ${
+          darkMode
+            ? "text-green-400"
+            : "text-green-600"
+        }`}
+      >
         過去のレポートを見る →
       </p>
 

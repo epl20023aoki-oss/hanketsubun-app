@@ -39,6 +39,7 @@ const [goal, setGoal] = useState("");
 const [victory, setVictory] = useState("");
 const [defeat, setDefeat] = useState("");
 const [testimony, setTestimony] = useState("");
+const [note, setNote] = useState("");
 const [
   testimonySubmitted,
   setTestimonySubmitted
@@ -307,38 +308,48 @@ const docRef = doc(
 
     const docSnap = await getDoc(docRef);
 
-    if (docSnap.exists()) {
-      const data = docSnap.data();
+if (docSnap.exists()) {
+  const data = docSnap.data();
 
-      setGoal(data.goal || "");
-      setVictory(data.victory || "");
-      setDefeat(data.defeat || "");
-      setTestimony(data.testimony || ""); 
-      
-      const savedReflection = localStorage.getItem(
-         `reflection-${user?.uid}-${selectedDate}` 
-        ); setReflection( savedReflection || data.reflection || "" );
+  setGoal(data.goal || "");
+  setVictory(data.victory || "");
+  setDefeat(data.defeat || "");
+  setTestimony(data.testimony || "");
+  setNote(data.note || "");
 
-      setActions(
-        data.actions || [
-          { text: "", checked: false },
-        ]
-      );
+  const savedReflection = localStorage.getItem(
+    `reflection-${user?.uid}-${selectedDate}`
+  );
 
-      setSelectedTags(data.tags || []);
-      
-    } else {
-      setGoal("");
-      setVictory("");
-      setDefeat("");
-      setTestimony("");
+  setReflection(
+    savedReflection ||
+    data.reflection ||
+    ""
+  );
 
-      setActions([
-        { text: "", checked: false },
-        
-      ]);
-    }
-  };
+  setActions(
+    data.actions || [
+      { text: "", checked: false },
+    ]
+  );
+
+  setSelectedTags(data.tags || []);
+
+} else {
+
+  setGoal("");
+  setVictory("");
+  setDefeat("");
+  setTestimony("");
+  setNote("");
+
+  setActions([
+    { text: "", checked: false },
+  ]);
+
+}
+
+};
 
   fetchData();
 
@@ -671,6 +682,7 @@ console.log(
           victory,
           defeat,
           testimony,
+          note,
           actions,
           tags: selectedTags,
           date: selectedDate,
@@ -797,6 +809,7 @@ console.log(
                 victory,
                 defeat,
                 testimony,
+                note,
                 actions: updated,
                 tags: selectedTags,
                 date: selectedDate,
@@ -837,6 +850,7 @@ console.log(
                 victory,
                 defeat,
                 testimony,
+                note,
                 actions: updated,
                 tags: selectedTags,
                 date: selectedDate,
@@ -885,6 +899,7 @@ await setDoc(
   victory: e.target.value,
   defeat,
   testimony,
+  note,
   actions,
   tags: selectedTags,
   date: selectedDate,
@@ -933,6 +948,7 @@ await setDoc(
   victory,
   defeat: e.target.value,
   testimony,
+  note,
   actions,
   tags: selectedTags,
   date: selectedDate,
@@ -1005,6 +1021,7 @@ await setDoc(
   victory,
   defeat,
   testimony: e.target.value,
+  note,
   actions,
   tags: selectedTags,
   date: selectedDate,
@@ -1025,6 +1042,70 @@ await setDoc(
 
   placeholder="今日感じたことを書いてみましょう"
 />
+
+<div className="mt-6">
+
+  <p
+    className={`mb-2 text-sm ${
+      darkMode
+        ? "text-gray-400"
+        : "text-gray-500"
+    }`}
+  >
+    備考
+  </p>
+
+  <textarea
+    value={note}
+    onChange={async (e) => {
+
+      const newNote =
+        e.target.value;
+
+      setNote(newNote);
+
+      setSaving(true);
+
+      if (!user) return;
+
+      await setDoc(
+        doc(
+          db,
+          "users",
+          user.uid,
+          "daily_logs",
+          selectedDate
+        ),
+        {
+          goal,
+          victory,
+          defeat,
+          testimony,
+          note: newNote,
+          actions,
+          tags: selectedTags,
+          date: selectedDate,
+          updatedAt: new Date(),
+        }
+      );
+
+      fetchLogs();
+
+      setTimeout(() => {
+        setSaving(false);
+      }, 1000);
+
+    }}
+    className={`min-h-[120px] w-full rounded-2xl p-5 shadow-sm outline-none placeholder:text-gray-400 transition-all duration-200 focus:ring-2 ${
+      darkMode
+        ? "bg-gray-800/80 text-white focus:ring-gray-600"
+        : "bg-gray-50 text-gray-800 focus:ring-gray-300"
+    }`}
+    placeholder="備考があれば記入してください"
+  />
+
+</div>
+
     </section>
 
     {/* タグ */}
@@ -1073,6 +1154,7 @@ await setDoc(
       victory,
       defeat,
       testimony,
+      note,
       actions,
       tags: updatedTags,
       date: selectedDate,
