@@ -28,6 +28,11 @@ export default function AdminPage() {
 ] = useState<any[]>([]);
 
 const [
+  submittedSummaries,
+  setSubmittedSummaries
+] = useState<any[]>([]);
+
+const [
   expandedTestimonies,
   setExpandedTestimonies
 ] = useState<string[]>([]);
@@ -186,10 +191,43 @@ useEffect(() => {
 
 }, []);
 
-  useEffect(() => {
+const fetchSubmittedSummaries =
+  async () => {
 
+    const snapshot =
+      await getDocs(
+        collection(
+          db,
+          "submitted_summaries"
+        )
+      );
+
+    const summaryData =
+      snapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+        .sort(
+          (a: any, b: any) =>
+            (b.submittedAt
+              ?.toDate?.()
+              .getTime() || 0) -
+            (a.submittedAt
+              ?.toDate?.()
+              .getTime() || 0)
+        );
+
+    setSubmittedSummaries(
+      summaryData
+    );
+
+  };
+
+useEffect(() => {
   fetchSubmittedReports();
   fetchSubmittedTestimonies();
+  fetchSubmittedSummaries();
 
 }, [selectedMonth]);
 
@@ -232,7 +270,7 @@ useEffect(() => {
     onClick={() =>
       setActiveTab("reports")
     }
-    className={`flex-1 rounded-xl px-4 py-2 text-sm ${
+    className={`flex-1 rounded-xl px-3 py-2 text-sm ${
       activeTab === "reports"
         ? darkMode
           ? "bg-gray-700 text-white"
@@ -247,7 +285,7 @@ useEffect(() => {
     onClick={() =>
       setActiveTab("testimonies")
     }
-    className={`flex-1 rounded-xl px-4 py-2 text-sm ${
+    className={`flex-1 rounded-xl px-3 py-2 text-sm ${
       activeTab === "testimonies"
         ? darkMode
           ? "bg-gray-700 text-white"
@@ -256,6 +294,21 @@ useEffect(() => {
     }`}
   >
     🌱 証一覧
+  </button>
+
+  <button
+    onClick={() =>
+      setActiveTab("summaries")
+    }
+    className={`flex-1 rounded-xl px-3 py-2 text-sm ${
+      activeTab === "summaries"
+        ? darkMode
+          ? "bg-gray-700 text-white"
+          : "bg-white shadow-sm"
+        : ""
+    }`}
+  >
+    📖 総括
   </button>
 
 </div>
@@ -650,6 +703,122 @@ useEffect(() => {
 
       )
     )}
+
+  </div>
+
+)}
+
+{activeTab === "summaries" && (
+
+  <div>
+
+    {submittedSummaries.length === 0 && (
+
+      <p
+        className={`text-sm ${
+          darkMode
+            ? "text-gray-400"
+            : "text-gray-500"
+        }`}
+      >
+        まだ総括の提出はありません
+      </p>
+
+    )}
+
+    {submittedSummaries
+      .filter((item) => {
+
+        const matchName =
+          item.name?.includes(
+            searchName
+          );
+
+        return matchName;
+
+      })
+      .map((item) => (
+
+        <Link
+          key={item.id}
+          href={`/admin/summaries/${item.id}`}
+          className={`mb-3 block rounded-3xl border p-5 transition-all hover:scale-[1.01] ${
+            darkMode
+              ? "border-gray-700 bg-gray-800 hover:bg-gray-700"
+              : "border-gray-100 bg-white hover:bg-gray-50"
+          }`}
+        >
+
+          <div className="flex items-center justify-between gap-4">
+
+            <div>
+
+              <div className="flex items-center gap-2">
+
+                <span>
+                  📖
+                </span>
+
+                <span className="font-semibold">
+                  {item.name}
+                </span>
+
+              </div>
+
+              <p
+                className={`mt-3 text-sm ${
+                  darkMode
+                    ? "text-gray-300"
+                    : "text-gray-700"
+                }`}
+              >
+                {item.startMonth
+                  ? `${item.startMonth.replace(
+                      "-",
+                      "年"
+                    )}月`
+                  : "-"}
+                {" ～ "}
+                {item.endMonth
+                  ? `${item.endMonth.replace(
+                      "-",
+                      "年"
+                    )}月`
+                  : "-"}
+              </p>
+
+              <p
+                className={`mt-2 text-xs ${
+                  darkMode
+                    ? "text-gray-500"
+                    : "text-gray-400"
+                }`}
+              >
+                提出：
+                {item.submittedAt?.toDate
+                  ? item.submittedAt
+                      .toDate()
+                      .toLocaleString()
+                  : "-"}
+              </p>
+
+            </div>
+
+            <div
+              className={`text-xl ${
+                darkMode
+                  ? "text-gray-500"
+                  : "text-gray-400"
+              }`}
+            >
+              ›
+            </div>
+
+          </div>
+
+        </Link>
+
+      ))}
 
   </div>
 

@@ -826,6 +826,44 @@ return (
     </div>
   </section>
 </Link>
+
+<Link href="/summaries">
+  <section className="mt-6">
+    <div
+      className={`cursor-pointer rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+        darkMode
+          ? "bg-gray-800/80"
+          : "bg-gray-50"
+      }`}
+    >
+      <p
+        className={`text-sm ${
+          darkMode
+            ? "text-gray-300"
+            : "text-gray-400"
+        }`}
+      >
+        総括
+      </p>
+
+      <p className="mt-4 text-lg leading-8">
+        これまでの歩みを振り返る
+      </p>
+
+      <p
+        className={`mt-4 text-xs ${
+          darkMode
+            ? "text-green-400"
+            : "text-green-600"
+        }`}
+      >
+        🌱 総括を作成・確認 →
+      </p>
+
+    </div>
+  </section>
+</Link>
+
 <Link href="/monthly-reports/history">
   <section className="mt-6">
     <div
