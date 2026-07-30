@@ -854,29 +854,38 @@ setHasTestimonyGenerated(
       : "text-gray-500"
   }`}
 >
-  実績件数
+  目標件数と結果
 </p>
 
 <div className="mb-6 flex items-center gap-3">
 
-  <span>
+  <span className="whitespace-nowrap">
     {goal?.targetCount || 0}件 →
   </span>
 
   <input
-    value={actualCount}
-    onChange={(e) =>
-      setActualCount(
-        e.target.value
-      )
-    }
-    className={`flex-1 rounded-2xl border p-3 ${
+  inputMode="numeric"
+  value={actualCount}
+  onChange={(e) =>
+    setActualCount(e.target.value)
+  }
+  className={`min-w-0 flex-1 rounded-2xl border p-3 ${
+    darkMode
+      ? "border-gray-700 bg-gray-800 text-white"
+      : "border-gray-300 bg-white text-gray-900"
+  }`}
+  placeholder="実績件数"
+/>
+
+  <span
+    className={`whitespace-nowrap ${
       darkMode
-        ? "border-gray-700 bg-gray-800 text-white"
-        : "border-gray-300 bg-white text-gray-900"
+        ? "text-gray-400"
+        : "text-gray-500"
     }`}
-    placeholder="実績件数"
-  />
+  >
+    件
+  </span>
 
 </div>
 
@@ -887,36 +896,43 @@ setHasTestimonyGenerated(
       : "text-gray-500"
   }`}
 >
-  実績金額
+  目標金額と結果
 </p>
 
 <div className="mb-6 flex items-center gap-3">
 
-  <span>
-    ¥
+  <span className="whitespace-nowrap">
     {Number(
       goal?.targetAmount || 0
     ).toLocaleString()}
-    →
+    円 →
   </span>
 
-  <input
-    value={actualAmount}
-    onChange={(e) =>
-      setActualAmount(
-        e.target.value
-      )
-    }
-    className={`flex-1 rounded-2xl border p-3 ${
+ <input
+  inputMode="numeric"
+  value={actualAmount}
+  onChange={(e) =>
+    setActualAmount(e.target.value)
+  }
+  className={`min-w-0 flex-1 rounded-2xl border p-3 ${
+    darkMode
+      ? "border-gray-700 bg-gray-800 text-white"
+      : "border-gray-300 bg-white text-gray-900"
+  }`}
+  placeholder="実績金額"
+/>
+
+  <span
+    className={`whitespace-nowrap ${
       darkMode
-        ? "border-gray-700 bg-gray-800 text-white"
-        : "border-gray-300 bg-white text-gray-900"
+        ? "text-gray-400"
+        : "text-gray-500"
     }`}
-    placeholder="実績金額"
-  />
+  >
+    円
+  </span>
 
 </div>
-
 <div className="mb-2 flex items-center justify-between">
 
   <p
