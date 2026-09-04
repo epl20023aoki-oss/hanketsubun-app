@@ -667,6 +667,38 @@ return (
 </Link>
 </section>
 
+{(role === "leader" || role === "subleader") && (
+  <Link href="/team-reports">
+    <section className="mt-6">
+      <div
+        className={`cursor-pointer rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+          darkMode
+            ? "bg-gray-800/80"
+            : "bg-gray-50"
+        }`}
+      >
+        <p className="text-sm text-gray-400">
+          週間班長レポート
+        </p>
+
+        <p className="mt-4 text-lg leading-8">
+          班の歩みを振り返る
+        </p>
+
+        <p
+          className={`mt-4 text-xs ${
+            darkMode
+              ? "text-green-400"
+              : "text-green-600"
+          }`}
+        >
+          🌱 班のレポートを作成・確認 →
+        </p>
+      </div>
+    </section>
+  </Link>
+)}
+
 {role === "admin" && (
 
   <Link href="/admin">

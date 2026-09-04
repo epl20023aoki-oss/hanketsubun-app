@@ -8,8 +8,9 @@ import Link from "next/link";
 
 export default function ProfilePage() {
   const [name, setName] = useState("");
-  const [team, setTeam] = useState("");
-  const [user, setUser] = useState<any>(null);
+const [team, setTeam] = useState("");
+const [role, setRole] = useState("member");
+const [user, setUser] = useState<any>(null);
 
 useEffect(() => {
   const unsubscribe =
@@ -47,6 +48,7 @@ useEffect(() => {
 
       setName(data.name || "");
       setTeam(data.team || "");
+      setRole(data.role || "member");
     }
   };
 
@@ -96,6 +98,31 @@ useEffect(() => {
             placeholder="班を入力"
           />
         </div>
+                
+        <div>
+          <label className="mb-2 block text-sm">
+            役割
+          </label>
+
+          <select
+            value={role}
+            onChange={(e) =>
+              setRole(e.target.value)
+            }
+            className="w-full rounded-2xl border p-4 bg-white"
+          >
+            <option value="leader">
+              班長
+            </option>
+            <option value="subleader">
+              副班長
+            </option>
+            <option value="member">
+              班員
+            </option>
+          </select>
+        </div>
+
 
 <button
  onClick={async () => {
@@ -115,11 +142,11 @@ useEffect(() => {
         user.uid
       ),
       {
-        name,
-        team,
-        role: "member",
-        updatedAt: new Date(),
-      },
+  name,
+  team,
+  role,
+  updatedAt: new Date(),
+},
       { merge: true }
     );
 
