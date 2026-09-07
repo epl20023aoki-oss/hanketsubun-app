@@ -118,6 +118,7 @@ export default function TeamReportsPage() {
               <p className="text-xs text-gray-400">
                 班長
               </p>
+
               <p className="mt-1">
                 {leader || "未設定"}
               </p>
@@ -127,6 +128,7 @@ export default function TeamReportsPage() {
               <p className="text-xs text-gray-400">
                 副班長
               </p>
+
               <p className="mt-1">
                 {subLeader || "未設定"}
               </p>
@@ -163,42 +165,29 @@ export default function TeamReportsPage() {
           今月の路程
         </p>
 
-       <div className="space-y-4">
-  <Link href="/team-reports/routes/1">
-    <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
-      <p className="text-sm text-gray-400">
-        {year}年{Number(month)}月
-      </p>
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map((route) => (
+            <Link
+              key={route}
+              href={`/team-reports/routes/${route}`}
+              className="block"
+            >
+              <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+                <p className="text-sm text-gray-400">
+                  {year}年{Number(month)}月
+                </p>
 
-      <p className="mt-2 text-lg">
-        1次路程
-      </p>
+                <p className="mt-2 text-lg">
+                  {route}次路程
+                </p>
 
-      <p className="mt-3 text-xs text-green-600">
-        レポートを開く →
-      </p>
-    </div>
-  </Link>
-
-  {[2, 3, 4, 5].map((route) => (
-    <div
-      key={route}
-      className="rounded-3xl bg-gray-50 p-6 shadow-sm"
-    >
-      <p className="text-sm text-gray-400">
-        {year}年{Number(month)}月
-      </p>
-
-      <p className="mt-2 text-lg">
-        {route}次路程
-      </p>
-
-      <p className="mt-3 text-xs text-green-600">
-        レポートを開く →
-      </p>
-    </div>
-  ))}
-</div>
+                <p className="mt-3 text-xs text-green-600">
+                  レポートを開く →
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </section>
     </main>
   );
