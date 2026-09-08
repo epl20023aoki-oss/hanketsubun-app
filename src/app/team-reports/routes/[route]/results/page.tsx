@@ -18,7 +18,7 @@ type MemberResult = {
   resultAmount: string;
   targetCount: string;
   targetAmount: string;
-  achieved: "" | "yes" | "no";
+  achieved: "" | "○" | "×";
   victory: string;
   defeat: string;
 };
@@ -119,7 +119,15 @@ export default function ResultsPage({ params }: Props) {
               resultAmount: saved.resultAmount || "",
               targetCount: saved.targetCount || "",
               targetAmount: saved.targetAmount || "",
-              achieved: saved.achieved || "",
+              achieved:
+                saved.achieved === "○" ||
+                saved.achieved === "×"
+                  ? saved.achieved
+                  : saved.achieved === "yes"
+                  ? "○"
+                  : saved.achieved === "no"
+                  ? "×"
+                  : "",
               victory: saved.victory || "",
               defeat: saved.defeat || "",
             };
@@ -428,11 +436,11 @@ export default function ResultsPage({ params }: Props) {
                       updateMember(
                         index,
                         "achieved",
-                        "yes"
+                        "○"
                       )
                     }
                     className={`rounded-2xl border py-4 transition ${
-                      member.achieved === "yes"
+                      member.achieved === "○"
                         ? darkMode
                           ? "border-green-500 bg-green-950/50 text-green-300"
                           : "border-green-600 bg-green-50 text-green-700"
@@ -450,11 +458,11 @@ export default function ResultsPage({ params }: Props) {
                       updateMember(
                         index,
                         "achieved",
-                        "no"
+                        "×"
                       )
                     }
                     className={`rounded-2xl border py-4 transition ${
-                      member.achieved === "no"
+                      member.achieved === "×"
                         ? darkMode
                           ? "border-red-400 bg-red-950/40 text-red-300"
                           : "border-red-400 bg-red-50 text-red-600"

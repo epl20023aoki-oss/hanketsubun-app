@@ -37,6 +37,9 @@ export default function RoutePage({ params }: Props) {
   const [submitting, setSubmitting] =
     useState(false);
 
+  const [inputUrl, setInputUrl] = useState("");
+  const [urlCopied, setUrlCopied] = useState(false);
+
   const [darkMode, setDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -176,6 +179,28 @@ export default function RoutePage({ params }: Props) {
     reflectionComplete &&
     resultsComplete &&
     goalsComplete;
+
+  // 班員入力用URLを作成
+  const createInputUrl = () => {
+    if (typeof window === "undefined") return;
+
+    const url = `${window.location.origin}/team-reports/input/${user.uid}/${currentMonth}/${route}`;
+    setInputUrl(url);
+    setUrlCopied(false);
+  };
+
+  const copyInputUrl = async () => {
+    if (!inputUrl) return;
+
+    try {
+      await navigator.clipboard.writeText(inputUrl);
+      setUrlCopied(true);
+      setTimeout(() => setUrlCopied(false), 2000);
+    } catch (error) {
+      console.error("URLコピーエラー", error);
+      alert("URLのコピーに失敗しました");
+    }
+  };
 
   // 提出
   const submitReport = async () => {
@@ -443,12 +468,76 @@ export default function RoutePage({ params }: Props) {
 
       <Link
         href={`/team-reports/routes/${route}/settings`}
-        className={`mb-10 inline-block text-xs ${
+        className={`mb-4 inline-block text-xs ${
           darkMode ? "text-green-400" : "text-green-600"
         }`}
       >
         期間を設定 →
       </Link>
+
+      {/* 班員への入力依頼 */}
+      <section className="mb-10">
+        <div
+          className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+            darkMode ? "bg-gray-800/80" : "bg-white"
+          }`}
+        >
+          <p className="text-sm text-gray-400">
+            班員への入力依頼
+          </p>
+
+          <p
+            className={`mt-3 text-sm leading-7 ${
+              darkMode ? "text-gray-300" : "text-gray-600"
+            }`}
+          >
+            班員みんなで入力できる共有URLを作成します。
+            作成したURLをLINEなどで班員に共有してください。
+          </p>
+
+          <button
+            type="button"
+            onClick={createInputUrl}
+            className={`mt-4 w-full rounded-2xl py-3 text-sm text-white transition ${
+              darkMode
+                ? "bg-gray-700 hover:bg-gray-600"
+                : "bg-gray-800 hover:bg-gray-700"
+            }`}
+          >
+            📋 班員への入力依頼URLを作成する
+          </button>
+
+          {inputUrl && (
+            <div className="mt-4">
+              <p className="mb-2 text-xs text-gray-400">
+                班員共有用URL
+              </p>
+
+              <div
+                className={`rounded-2xl p-3 text-xs break-all ${
+                  darkMode
+                    ? "bg-gray-900 text-gray-300"
+                    : "bg-gray-50 text-gray-600"
+                }`}
+              >
+                {inputUrl}
+              </div>
+
+              <button
+                type="button"
+                onClick={copyInputUrl}
+                className={`mt-3 w-full rounded-2xl py-3 text-sm transition ${
+                  darkMode
+                    ? "bg-green-900/40 text-green-300 hover:bg-green-900/60"
+                    : "bg-green-50 text-green-700 hover:bg-green-100"
+                }`}
+              >
+                {urlCopied ? "✓ コピーしました" : "URLをコピーする"}
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
 
       <div className="space-y-4">
         {/* ① */}
@@ -569,20 +658,85 @@ export default function RoutePage({ params }: Props) {
       {/* 提出 */}
       <section className="mt-8">
         {submitted ? (
-          <div className={`rounded-3xl p-6 text-center ${
+          <div
+            className={`rounded-3xl p-6 text-center ${
               darkMode ? "bg-green-950/40" : "bg-green-50"
-            }`}>
-            <p className={`text-lg ${
-              darkMode ? "text-green-300" : "text-green-700"
-            }`}>
+            }`}
+          >
+            <p
+              className={`text-lg ${
+                darkMode ? "text-green-300" : "text-green-700"
+              }`}
+            >
               ✓ スタッフへ提出済み
             </p>
 
-            <p className={`mt-2 text-sm ${
-              darkMode ? "text-green-400" : "text-green-600"
-            }`}>
+            <p
+              className={`mt-2 text-sm ${
+                darkMode ? "text-green-400" : "text-green-600"
+              }`}
+            >
               このレポートは提出されています
             </p>
+
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <Link
+                href={`/team-reports/pdf/${user?.uid}_${currentMonth}_route_${route}`}
+                target="_blank"
+                className={`rounded-2xl py-3 text-sm transition ${
+                  darkMode
+                    ? "bg-gray-800 text-gray-200 hover:bg-gray-700"
+                    : "bg-white text-gray-700 shadow-sm hover:bg-gray-50"
+                }`}
+              >
+                📄 PDF
+              </Link>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  const shareData = {
+                    title: `${month}月 第${route}次路程`,
+                    text: `${month}月 第${route}次路程の週間班長レポートです。`,
+                    url: window.location.href,
+                  };
+
+                  try {
+                    if (navigator.share) {
+                      await navigator.share(shareData);
+                    } else {
+                      await navigator.clipboard.writeText(window.location.href);
+                      alert("ページURLをコピーしました");
+                    }
+                  } catch (error) {
+                    if ((error as Error)?.name !== "AbortError") {
+                      console.error("共有エラー", error);
+                      alert("共有に失敗しました");
+                    }
+                  }
+                }}
+                className={`rounded-2xl py-3 text-sm transition ${
+                  darkMode
+                    ? "bg-gray-800 text-gray-200 hover:bg-gray-700"
+                    : "bg-white text-gray-700 shadow-sm hover:bg-gray-50"
+                }`}
+              >
+                📤 共有
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={submitReport}
+              disabled={submitting}
+              className={`mt-3 w-full rounded-2xl py-3 text-sm transition ${
+                darkMode
+                  ? "bg-green-900/40 text-green-300 hover:bg-green-900/60"
+                  : "bg-green-50 text-green-700 hover:bg-green-100"
+              } disabled:opacity-50`}
+            >
+              {submitting ? "再提出中..." : "🔄 修正内容を再提出する"}
+            </button>
           </div>
         ) : (
           <div className="rounded-3xl bg-white p-6 shadow-sm dark:bg-gray-800">
@@ -590,9 +744,11 @@ export default function RoutePage({ params }: Props) {
               レポートの提出
             </p>
 
-            <p className={`mt-3 text-sm leading-7 ${
-              darkMode ? "text-gray-400" : "text-gray-500"
-            }`}>
+            <p
+              className={`mt-3 text-sm leading-7 ${
+                darkMode ? "text-gray-400" : "text-gray-500"
+              }`}
+            >
               ①〜③をすべて記入すると、
               スタッフへ提出できます。
             </p>
@@ -600,9 +756,7 @@ export default function RoutePage({ params }: Props) {
             <button
               type="button"
               onClick={submitReport}
-              disabled={
-                !allComplete || submitting
-              }
+              disabled={!allComplete || submitting}
               className={`mt-5 w-full rounded-2xl py-4 text-white transition ${
                 allComplete
                   ? darkMode
@@ -613,15 +767,7 @@ export default function RoutePage({ params }: Props) {
                     : "bg-gray-300"
               } disabled:opacity-50`}
             >
-              {submitting
-                ? submitted
-                  ? "再提出中..."
-                  : "提出中..."
-                : submitted
-                ? "修正内容を再提出する"
-                : allComplete
-                ? "スタッフへ提出する"
-                : "①〜③を記入してください"}
+              {submitting ? "提出中..." : allComplete ? "スタッフへ提出する" : "①〜③を記入してください"}
             </button>
           </div>
         )}
