@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { collection, doc, getDocs, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../../../../lib/firebase";
 
 type Props = {
@@ -109,27 +109,57 @@ export default function ResultsPage({ params }: Props) {
           ? resultsSnap.data()
           : {};
 
+        // 共有入力URLから保存された班員データを読み込み、
+        // 班長側の通常データより優先して表示する
+        let sharedInputs: Record<string, any> = {};
+
+        try {
+          const sharedSnap = await getDocs(
+            collection(db, "team_report_inputs")
+          );
+
+          sharedSnap.forEach((sharedDoc) => {
+            const data = sharedDoc.data();
+
+            if (
+              data.createdBy === user.uid &&
+              String(data.month || "") === currentMonth &&
+              Number(data.route || 0) === Number(route)
+            ) {
+              sharedInputs = data.inputs || {};
+            }
+          });
+        } catch (sharedError) {
+          console.error("共有入力データの読み込みエラー", sharedError);
+        }
+
         const loadedMembers: MemberResult[] =
           teamMembers.map((name) => {
             const saved = savedResults[name] || {};
+            const shared = sharedInputs[name]?.results || {};
+
+            const merged = {
+              ...saved,
+              ...shared,
+            };
 
             return {
               name,
-              resultCount: saved.resultCount || "",
-              resultAmount: saved.resultAmount || "",
-              targetCount: saved.targetCount || "",
-              targetAmount: saved.targetAmount || "",
+              resultCount: merged.resultCount || "",
+              resultAmount: merged.resultAmount || "",
+              targetCount: merged.targetCount || "",
+              targetAmount: merged.targetAmount || "",
               achieved:
-                saved.achieved === "○" ||
-                saved.achieved === "×"
-                  ? saved.achieved
-                  : saved.achieved === "yes"
+                merged.achieved === "○" ||
+                merged.achieved === "×"
+                  ? merged.achieved
+                  : merged.achieved === "yes"
                   ? "○"
-                  : saved.achieved === "no"
+                  : merged.achieved === "no"
                   ? "×"
                   : "",
-              victory: saved.victory || "",
-              defeat: saved.defeat || "",
+              victory: merged.victory || "",
+              defeat: merged.defeat || "",
             };
           });
 

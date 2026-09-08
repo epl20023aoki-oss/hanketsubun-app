@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { collection, doc, getDocs, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../../../../lib/firebase";
 
 type Props = {
@@ -108,20 +108,50 @@ export default function GoalsPage({ params }: Props) {
           ? goalsSnap.data()
           : {};
 
+        // 共有入力URLから保存された班員データを読み込み、
+        // 班長側の通常データより優先して表示する
+        let sharedInputs: Record<string, any> = {};
+
+        try {
+          const sharedSnap = await getDocs(
+            collection(db, "team_report_inputs")
+          );
+
+          sharedSnap.forEach((sharedDoc) => {
+            const data = sharedDoc.data();
+
+            if (
+              data.createdBy === user.uid &&
+              String(data.month || "") === currentMonth &&
+              Number(data.route || 0) === Number(route)
+            ) {
+              sharedInputs = data.inputs || {};
+            }
+          });
+        } catch (sharedError) {
+          console.error("共有入力データの読み込みエラー", sharedError);
+        }
+
         const loadedMembers: MemberGoal[] =
           teamMembers.map((name) => {
             const saved = savedGoals[name] || {};
+            const shared = sharedInputs[name]?.goals || {};
+
+            const merged = {
+              ...saved,
+              ...shared,
+            };
 
             return {
               name,
               externalCount:
-                saved.externalCount || "",
+                merged.externalCount || "",
               externalAmount:
-                saved.externalAmount || "",
+                merged.externalAmount || "",
               internalGoal:
-                saved.internalGoal || "",
+                merged.internalGoal || "",
               actions:
-                saved.actions || "",
+                merged.actions || "",
             };
           });
 
