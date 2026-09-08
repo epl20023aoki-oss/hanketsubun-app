@@ -18,7 +18,26 @@ export default function TeamMembersPage() {
   const [mounted, setMounted] = useState(false);
 
   const currentMonth = new Date().toISOString().slice(0, 7);
-  const [year, month] = currentMonth.split("-");
+
+  // URLから対象月を取得
+  const [selectedMonth, setSelectedMonth] =
+    useState(currentMonth);
+
+  const [year, month] =
+    selectedMonth.split("-");
+
+  // URLのmonthを読み込む
+  useEffect(() => {
+    const params = new URLSearchParams(
+      window.location.search
+    );
+
+    const monthParam = params.get("month");
+
+    if (monthParam) {
+      setSelectedMonth(monthParam);
+    }
+  }, []);
 
   // ダークモード設定を読み込む
   useEffect(() => {
@@ -53,7 +72,7 @@ export default function TeamMembersPage() {
         "users",
         user.uid,
         "team_reports",
-        currentMonth
+        selectedMonth
       );
 
       const docSnap = await getDoc(docRef);
@@ -65,15 +84,21 @@ export default function TeamMembersPage() {
         setLeader(data.leader || "");
         setSubLeader(data.subLeader || "");
         setMembers(
-          data.members && data.members.length > 0
+          data.members &&
+          data.members.length > 0
             ? data.members
             : [""]
         );
+      } else {
+        setTeam("");
+        setLeader("");
+        setSubLeader("");
+        setMembers([""]);
       }
     };
 
     fetchTeamMembers();
-  }, [user, currentMonth]);
+  }, [user, selectedMonth]);
 
   const addMember = () => {
     setMembers([...members, ""]);
@@ -103,7 +128,7 @@ export default function TeamMembersPage() {
           "users",
           user.uid,
           "team_reports",
-          currentMonth
+          selectedMonth
         ),
         {
           team,
@@ -139,7 +164,7 @@ export default function TeamMembersPage() {
       }`}
     >
       <Link
-        href="/team-reports"
+        href={`/team-reports?month=${selectedMonth}`}
         className={`mb-6 inline-block text-sm transition ${
           darkMode
             ? "text-gray-400 hover:text-gray-200"

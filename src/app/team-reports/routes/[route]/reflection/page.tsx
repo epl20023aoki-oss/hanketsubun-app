@@ -10,10 +10,17 @@ type Props = {
   params: Promise<{
     route: string;
   }>;
+  searchParams: Promise<{
+    month?: string;
+  }>;
 };
 
-export default function ReflectionPage({ params }: Props) {
+export default function ReflectionPage({
+  params,
+  searchParams,
+}: Props) {
   const { route } = use(params);
+  const { month: monthParam } = use(searchParams);
 
   const [user, setUser] = useState<any>(null);
 
@@ -30,8 +37,13 @@ export default function ReflectionPage({ params }: Props) {
   const [darkMode, setDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const currentMonth = new Date().toISOString().slice(0, 7);
-  const [, month] = currentMonth.split("-");
+  const currentMonth = new Date()
+    .toISOString()
+    .slice(0, 7);
+
+  // URLで指定された月を使用する
+  const selectedMonth = monthParam || currentMonth;
+  const [, month] = selectedMonth.split("-");
 
   // ダークモード設定を読み込む
   useEffect(() => {
@@ -68,7 +80,7 @@ export default function ReflectionPage({ params }: Props) {
             "users",
             user.uid,
             "team_reports",
-            currentMonth,
+            selectedMonth,
             "routes",
             `route_${route}`
           )
@@ -83,6 +95,13 @@ export default function ReflectionPage({ params }: Props) {
           setCurrentState(data.currentState || "");
           setChanges(data.changes || "");
           setNextSlogan(data.nextSlogan || "");
+        } else {
+          setSlogan("");
+          setVictory("");
+          setDefeat("");
+          setCurrentState("");
+          setChanges("");
+          setNextSlogan("");
         }
       } catch (error) {
         console.error(
@@ -95,7 +114,7 @@ export default function ReflectionPage({ params }: Props) {
     };
 
     fetchReflection();
-  }, [user, currentMonth, route]);
+  }, [user, selectedMonth, route]);
 
   // 保存
   const saveReflection = async () => {
@@ -113,7 +132,7 @@ export default function ReflectionPage({ params }: Props) {
           "users",
           user.uid,
           "team_reports",
-          currentMonth,
+          selectedMonth,
           "routes",
           `route_${route}`
         ),
@@ -169,7 +188,7 @@ export default function ReflectionPage({ params }: Props) {
       }`}
     >
       <Link
-        href={`/team-reports/routes/${route}`}
+        href={`/team-reports/routes/${route}?month=${selectedMonth}`}
         className={`mb-6 inline-block text-sm transition ${
           darkMode
             ? "text-gray-400 hover:text-gray-200"
@@ -202,7 +221,9 @@ export default function ReflectionPage({ params }: Props) {
 
           <textarea
             value={slogan}
-            onChange={(e) => setSlogan(e.target.value)}
+            onChange={(e) =>
+              setSlogan(e.target.value)
+            }
             placeholder="今路程の班スローガンを入力してください"
             className={`min-h-28 w-full resize-none rounded-2xl border p-4 outline-none transition ${
               darkMode
@@ -226,7 +247,9 @@ export default function ReflectionPage({ params }: Props) {
 
           <textarea
             value={victory}
-            onChange={(e) => setVictory(e.target.value)}
+            onChange={(e) =>
+              setVictory(e.target.value)
+            }
             placeholder="班としての取り組みの勝利点を入力してください"
             className={`min-h-40 w-full resize-none rounded-2xl border p-4 outline-none transition ${
               darkMode
@@ -250,7 +273,9 @@ export default function ReflectionPage({ params }: Props) {
 
           <textarea
             value={defeat}
-            onChange={(e) => setDefeat(e.target.value)}
+            onChange={(e) =>
+              setDefeat(e.target.value)
+            }
             placeholder="班としての取り組みの敗北点を入力してください"
             className={`min-h-40 w-full resize-none rounded-2xl border p-4 outline-none transition ${
               darkMode
@@ -300,7 +325,9 @@ export default function ReflectionPage({ params }: Props) {
 
           <textarea
             value={changes}
-            onChange={(e) => setChanges(e.target.value)}
+            onChange={(e) =>
+              setChanges(e.target.value)
+            }
             placeholder="変更したこと、追加した取り組みを入力してください"
             className={`min-h-40 w-full resize-none rounded-2xl border p-4 outline-none transition ${
               darkMode

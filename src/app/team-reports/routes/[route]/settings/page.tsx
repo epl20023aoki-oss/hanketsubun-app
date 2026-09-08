@@ -10,10 +10,17 @@ type Props = {
   params: Promise<{
     route: string;
   }>;
+  searchParams: Promise<{
+    month?: string;
+  }>;
 };
 
-export default function RouteSettingsPage({ params }: Props) {
+export default function RouteSettingsPage({
+  params,
+  searchParams,
+}: Props) {
   const { route } = use(params);
+  const { month: monthParam } = use(searchParams);
 
   const [user, setUser] = useState<any>(null);
   const [startDate, setStartDate] = useState("");
@@ -24,7 +31,13 @@ export default function RouteSettingsPage({ params }: Props) {
   const [darkMode, setDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const currentMonth = new Date().toISOString().slice(0, 7);
+  const currentMonth = new Date()
+    .toISOString()
+    .slice(0, 7);
+
+  // URLで指定された月を使用する
+  const selectedMonth = monthParam || currentMonth;
+  const [, month] = selectedMonth.split("-");
 
   // ダークモード設定を読み込む
   useEffect(() => {
@@ -37,14 +50,19 @@ export default function RouteSettingsPage({ params }: Props) {
     setMounted(true);
   }, []);
 
+  // ログイン状態を確認
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (currentUser) => {
+        setUser(currentUser);
+      }
+    );
 
     return () => unsubscribe();
   }, []);
 
+  // 路程設定を読み込む
   useEffect(() => {
     if (!user) return;
 
@@ -56,7 +74,7 @@ export default function RouteSettingsPage({ params }: Props) {
             "users",
             user.uid,
             "team_reports",
-            currentMonth,
+            selectedMonth,
             "routes",
             `route_${route}`
           )
@@ -67,16 +85,22 @@ export default function RouteSettingsPage({ params }: Props) {
 
           setStartDate(data.startDate || "");
           setEndDate(data.endDate || "");
+        } else {
+          setStartDate("");
+          setEndDate("");
         }
       } catch (error) {
-        console.error("路程設定の読み込みエラー", error);
+        console.error(
+          "路程設定の読み込みエラー",
+          error
+        );
       } finally {
         setLoading(false);
       }
     };
 
     fetchRouteSettings();
-  }, [user, currentMonth, route]);
+  }, [user, selectedMonth, route]);
 
   const saveRouteSettings = async () => {
     if (!user) {
@@ -90,7 +114,9 @@ export default function RouteSettingsPage({ params }: Props) {
     }
 
     if (startDate > endDate) {
-      alert("終了日は開始日より後の日付にしてください");
+      alert(
+        "終了日は開始日より後の日付にしてください"
+      );
       return;
     }
 
@@ -103,7 +129,7 @@ export default function RouteSettingsPage({ params }: Props) {
           "users",
           user.uid,
           "team_reports",
-          currentMonth,
+          selectedMonth,
           "routes",
           `route_${route}`
         ),
@@ -115,9 +141,15 @@ export default function RouteSettingsPage({ params }: Props) {
         { merge: true }
       );
 
-      alert(`第${route}次路程の期間を保存しました`);
+      alert(
+        `第${route}次路程の期間を保存しました`
+      );
     } catch (error) {
-      console.error("路程設定の保存エラー", error);
+      console.error(
+        "路程設定の保存エラー",
+        error
+      );
+
       alert("保存に失敗しました");
     } finally {
       setSaving(false);
@@ -151,7 +183,7 @@ export default function RouteSettingsPage({ params }: Props) {
       }`}
     >
       <Link
-        href={`/team-reports/routes/${route}`}
+        href={`/team-reports/routes/${route}?month=${selectedMonth}`}
         className={`mb-6 inline-block text-sm transition ${
           darkMode
             ? "text-gray-400 hover:text-gray-200"
@@ -165,8 +197,12 @@ export default function RouteSettingsPage({ params }: Props) {
         第{route}次路程の設定
       </h1>
 
-      <p className="mb-10 text-sm text-gray-400">
-        路程の期間を設定しましょう
+      <p className="mb-2 text-sm text-gray-400">
+        {Number(month)}月の路程期間を設定しましょう
+      </p>
+
+      <p className="mb-10 text-xs text-gray-400">
+        対象月：{selectedMonth}
       </p>
 
       <section
@@ -195,7 +231,9 @@ export default function RouteSettingsPage({ params }: Props) {
             <input
               type="date"
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={(e) =>
+                setStartDate(e.target.value)
+              }
               className={`w-full rounded-2xl border p-4 outline-none transition ${
                 darkMode
                   ? "border-gray-600 bg-gray-700 text-white"
@@ -218,7 +256,9 @@ export default function RouteSettingsPage({ params }: Props) {
             <input
               type="date"
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              onChange={(e) =>
+                setEndDate(e.target.value)
+              }
               className={`w-full rounded-2xl border p-4 outline-none transition ${
                 darkMode
                   ? "border-gray-600 bg-gray-700 text-white"

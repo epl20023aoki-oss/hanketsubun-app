@@ -50,7 +50,24 @@ export default function RoutePage({ params }: Props) {
     .toISOString()
     .slice(0, 7);
 
-  const [, month] = currentMonth.split("-");
+  // URLから対象月を取得
+  const [selectedMonth, setSelectedMonth] =
+    useState(currentMonth);
+
+  const [, month] = selectedMonth.split("-");
+
+  // URLのmonthを読み込む
+  useEffect(() => {
+    const params = new URLSearchParams(
+      window.location.search
+    );
+
+    const monthParam = params.get("month");
+
+    if (monthParam) {
+      setSelectedMonth(monthParam);
+    }
+  }, []);
 
   // ダークモード設定を読み込む
   useEffect(() => {
@@ -81,13 +98,15 @@ export default function RoutePage({ params }: Props) {
 
     const fetchRouteData = async () => {
       try {
+        setLoading(true);
+
         // 路程本体
         const routeRef = doc(
           db,
           "users",
           user.uid,
           "team_reports",
-          currentMonth,
+          selectedMonth,
           "routes",
           `route_${route}`
         );
@@ -100,6 +119,10 @@ export default function RoutePage({ params }: Props) {
           setStartDate(data.startDate || "");
           setEndDate(data.endDate || "");
           setSubmitted(data.submitted || false);
+        } else {
+          setStartDate("");
+          setEndDate("");
+          setSubmitted(false);
         }
 
         // ① 前路程の振り返り
@@ -119,6 +142,8 @@ export default function RoutePage({ params }: Props) {
             !!data.nextSlogan;
 
           setReflectionComplete(complete);
+        } else {
+          setReflectionComplete(false);
         }
 
         // ② 班員ごとの結果
@@ -138,6 +163,8 @@ export default function RoutePage({ params }: Props) {
           );
 
           setResultsComplete(hasMembers);
+        } else {
+          setResultsComplete(false);
         }
 
         // ③ 次路程の個人目標
@@ -157,6 +184,8 @@ export default function RoutePage({ params }: Props) {
           );
 
           setGoalsComplete(hasMembers);
+        } else {
+          setGoalsComplete(false);
         }
       } catch (error) {
         console.error(
@@ -169,7 +198,7 @@ export default function RoutePage({ params }: Props) {
     };
 
     fetchRouteData();
-  }, [user, currentMonth, route]);
+  }, [user, selectedMonth, route]);
 
   const formatDate = (date: string) => {
     if (!date) return "";
@@ -194,7 +223,7 @@ export default function RoutePage({ params }: Props) {
         "users",
         user.uid,
         "team_reports",
-        currentMonth
+        selectedMonth
       );
 
       const teamReportSnap = await getDoc(teamReportRef);
@@ -207,11 +236,13 @@ export default function RoutePage({ params }: Props) {
       const teamData = teamReportSnap.data();
 
       // 共有用IDを生成
-      const shareRef = doc(collection(db, "team_report_inputs"));
+      const shareRef = doc(
+        collection(db, "team_report_inputs")
+      );
 
       // 共有入力ページが参照するデータを保存
       await setDoc(shareRef, {
-        month: currentMonth,
+        month: selectedMonth,
         route: Number(route),
         team: teamData.team || "",
         leader: teamData.leader || "",
@@ -279,7 +310,7 @@ export default function RoutePage({ params }: Props) {
         "users",
         user.uid,
         "team_reports",
-        currentMonth
+        selectedMonth
       );
 
       const teamReportSnap =
@@ -298,7 +329,7 @@ export default function RoutePage({ params }: Props) {
         "users",
         user.uid,
         "team_reports",
-        currentMonth,
+        selectedMonth,
         "routes",
         `route_${route}`
       );
@@ -380,7 +411,7 @@ export default function RoutePage({ params }: Props) {
       // --------------------------------
 
       const submissionId =
-        `${user.uid}_${currentMonth}_route_${route}`;
+        `${user.uid}_${selectedMonth}_route_${route}`;
 
       await setDoc(
         doc(
@@ -391,7 +422,7 @@ export default function RoutePage({ params }: Props) {
         {
           uid: user.uid,
 
-          month: currentMonth,
+          month: selectedMonth,
 
           route: Number(route),
 
@@ -487,7 +518,7 @@ export default function RoutePage({ params }: Props) {
       }`}
     >
       <Link
-        href="/team-reports"
+        href={`/team-reports?month=${selectedMonth}`}
         className={`mb-6 inline-block text-sm transition ${
           darkMode
             ? "text-gray-400 hover:text-gray-200"
@@ -510,9 +541,11 @@ export default function RoutePage({ params }: Props) {
       </p>
 
       <Link
-        href={`/team-reports/routes/${route}/settings`}
+        href={`/team-reports/routes/${route}/settings?month=${selectedMonth}`}
         className={`mb-4 inline-block text-xs ${
-          darkMode ? "text-green-400" : "text-green-600"
+          darkMode
+            ? "text-green-400"
+            : "text-green-600"
         }`}
       >
         期間を設定 →
@@ -522,7 +555,9 @@ export default function RoutePage({ params }: Props) {
       <section className="mb-10">
         <div
           className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
-            darkMode ? "bg-gray-800/80" : "bg-white"
+            darkMode
+              ? "bg-gray-800/80"
+              : "bg-white"
           }`}
         >
           <p className="text-sm text-gray-400">
@@ -531,7 +566,9 @@ export default function RoutePage({ params }: Props) {
 
           <p
             className={`mt-3 text-sm leading-7 ${
-              darkMode ? "text-gray-300" : "text-gray-600"
+              darkMode
+                ? "text-gray-300"
+                : "text-gray-600"
             }`}
           >
             班員みんなで入力できる共有URLを作成します。
@@ -575,7 +612,9 @@ export default function RoutePage({ params }: Props) {
                     : "bg-green-50 text-green-700 hover:bg-green-100"
                 }`}
               >
-                {urlCopied ? "✓ コピーしました" : "URLをコピーする"}
+                {urlCopied
+                  ? "✓ コピーしました"
+                  : "URLをコピーする"}
               </button>
             </div>
           )}
@@ -585,12 +624,16 @@ export default function RoutePage({ params }: Props) {
       <div className="space-y-4">
         {/* ① */}
         <Link
-          href={`/team-reports/routes/${route}/reflection`}
+          href={`/team-reports/routes/${route}/reflection?month=${selectedMonth}`}
           className="block"
         >
-          <div className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
-              darkMode ? "bg-gray-800/80" : "bg-white"
-            }`}>
+          <div
+            className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+              darkMode
+                ? "bg-gray-800/80"
+                : "bg-white"
+            }`}
+          >
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-400">
                 ① 前路程の振り返り
@@ -599,7 +642,11 @@ export default function RoutePage({ params }: Props) {
               <span
                 className={
                   reflectionComplete
-                    ? `text-sm ${darkMode ? "text-green-400" : "text-green-600"}`
+                    ? `text-sm ${
+                        darkMode
+                          ? "text-green-400"
+                          : "text-green-600"
+                      }`
                     : "text-sm text-gray-400"
                 }
               >
@@ -613,9 +660,13 @@ export default function RoutePage({ params }: Props) {
               班としての歩みを振り返る
             </p>
 
-            <p className={`mt-4 text-xs ${
-              darkMode ? "text-green-400" : "text-green-600"
-            }`}>
+            <p
+              className={`mt-4 text-xs ${
+                darkMode
+                  ? "text-green-400"
+                  : "text-green-600"
+              }`}
+            >
               記入する →
             </p>
           </div>
@@ -623,12 +674,16 @@ export default function RoutePage({ params }: Props) {
 
         {/* ② */}
         <Link
-          href={`/team-reports/routes/${route}/results`}
+          href={`/team-reports/routes/${route}/results?month=${selectedMonth}`}
           className="block"
         >
-          <div className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
-              darkMode ? "bg-gray-800/80" : "bg-white"
-            }`}>
+          <div
+            className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+              darkMode
+                ? "bg-gray-800/80"
+                : "bg-white"
+            }`}
+          >
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-400">
                 ② 班員ごとの結果
@@ -637,7 +692,11 @@ export default function RoutePage({ params }: Props) {
               <span
                 className={
                   resultsComplete
-                    ? `text-sm ${darkMode ? "text-green-400" : "text-green-600"}`
+                    ? `text-sm ${
+                        darkMode
+                          ? "text-green-400"
+                          : "text-green-600"
+                      }`
                     : "text-sm text-gray-400"
                 }
               >
@@ -651,9 +710,13 @@ export default function RoutePage({ params }: Props) {
               班員一人ひとりの結果を記録する
             </p>
 
-            <p className={`mt-4 text-xs ${
-              darkMode ? "text-green-400" : "text-green-600"
-            }`}>
+            <p
+              className={`mt-4 text-xs ${
+                darkMode
+                  ? "text-green-400"
+                  : "text-green-600"
+              }`}
+            >
               記入する →
             </p>
           </div>
@@ -661,12 +724,16 @@ export default function RoutePage({ params }: Props) {
 
         {/* ③ */}
         <Link
-          href={`/team-reports/routes/${route}/goals`}
+          href={`/team-reports/routes/${route}/goals?month=${selectedMonth}`}
           className="block"
         >
-          <div className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
-              darkMode ? "bg-gray-800/80" : "bg-white"
-            }`}>
+          <div
+            className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+              darkMode
+                ? "bg-gray-800/80"
+                : "bg-white"
+            }`}
+          >
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-400">
                 ③ 次路程の個人目標
@@ -675,7 +742,11 @@ export default function RoutePage({ params }: Props) {
               <span
                 className={
                   goalsComplete
-                    ? `text-sm ${darkMode ? "text-green-400" : "text-green-600"}`
+                    ? `text-sm ${
+                        darkMode
+                          ? "text-green-400"
+                          : "text-green-600"
+                      }`
                     : "text-sm text-gray-400"
                 }
               >
@@ -689,9 +760,13 @@ export default function RoutePage({ params }: Props) {
               次の路程に向けた目標を記録する
             </p>
 
-            <p className={`mt-4 text-xs ${
-              darkMode ? "text-green-400" : "text-green-600"
-            }`}>
+            <p
+              className={`mt-4 text-xs ${
+                darkMode
+                  ? "text-green-400"
+                  : "text-green-600"
+              }`}
+            >
               記入する →
             </p>
           </div>
@@ -703,12 +778,16 @@ export default function RoutePage({ params }: Props) {
         {submitted ? (
           <div
             className={`rounded-3xl p-6 text-center ${
-              darkMode ? "bg-green-950/40" : "bg-green-50"
+              darkMode
+                ? "bg-green-950/40"
+                : "bg-green-50"
             }`}
           >
             <p
               className={`text-lg ${
-                darkMode ? "text-green-300" : "text-green-700"
+                darkMode
+                  ? "text-green-300"
+                  : "text-green-700"
               }`}
             >
               ✓ スタッフへ提出済み
@@ -716,7 +795,9 @@ export default function RoutePage({ params }: Props) {
 
             <p
               className={`mt-2 text-sm ${
-                darkMode ? "text-green-400" : "text-green-600"
+                darkMode
+                  ? "text-green-400"
+                  : "text-green-600"
               }`}
             >
               このレポートは提出されています
@@ -724,7 +805,7 @@ export default function RoutePage({ params }: Props) {
 
             <div className="mt-5 grid grid-cols-2 gap-3">
               <Link
-                href={`/team-reports/pdf/${user?.uid}_${currentMonth}_route_${route}`}
+                href={`/team-reports/pdf/${user?.uid}_${selectedMonth}_route_${route}`}
                 target="_blank"
                 className={`rounded-2xl py-3 text-sm transition ${
                   darkMode
@@ -739,15 +820,21 @@ export default function RoutePage({ params }: Props) {
                 type="button"
                 disabled={sharingPdf}
                 onClick={async () => {
-                  if (typeof window === "undefined" || !user || sharingPdf) return;
+                  if (
+                    typeof window === "undefined" ||
+                    !user ||
+                    sharingPdf
+                  )
+                    return;
 
                   try {
                     setSharingPdf(true);
 
-                    const pdfUrl = `/team-reports/pdf/${user.uid}_${currentMonth}_route_${route}`;
+                    const pdfUrl = `/team-reports/pdf/${user.uid}_${selectedMonth}_route_${route}`;
 
                     // PDF表示ページを一時的に読み込み、画面に表示された内容をPDF化する
-                    const iframe = document.createElement("iframe");
+                    const iframe =
+                      document.createElement("iframe");
                     iframe.src = pdfUrl;
                     iframe.style.position = "fixed";
                     iframe.style.left = "-10000px";
@@ -759,66 +846,95 @@ export default function RoutePage({ params }: Props) {
 
                     document.body.appendChild(iframe);
 
-                    await new Promise<void>((resolve, reject) => {
-                      const timeout = window.setTimeout(() => {
-                        reject(new Error("PDFページの読み込みがタイムアウトしました"));
-                      }, 15000);
+                    await new Promise<void>(
+                      (resolve, reject) => {
+                        const timeout =
+                          window.setTimeout(() => {
+                            reject(
+                              new Error(
+                                "PDFページの読み込みがタイムアウトしました"
+                              )
+                            );
+                          }, 15000);
 
-                      iframe.onload = () => {
-                        window.clearTimeout(timeout);
-                        resolve();
-                      };
+                        iframe.onload = () => {
+                          window.clearTimeout(timeout);
+                          resolve();
+                        };
 
-                      iframe.onerror = () => {
-                        window.clearTimeout(timeout);
-                        reject(new Error("PDFページの読み込みに失敗しました"));
-                      };
-                    });
+                        iframe.onerror = () => {
+                          window.clearTimeout(timeout);
+                          reject(
+                            new Error(
+                              "PDFページの読み込みに失敗しました"
+                            )
+                          );
+                        };
+                      }
+                    );
 
                     // PDFページ内の本文が描画されるまで少し待つ
-                    await new Promise((resolve) => setTimeout(resolve, 800));
+                    await new Promise((resolve) =>
+                      setTimeout(resolve, 800)
+                    );
 
                     const iframeDocument =
-                      iframe.contentDocument || iframe.contentWindow?.document;
+                      iframe.contentDocument ||
+                      iframe.contentWindow?.document;
 
                     if (!iframeDocument) {
-                      throw new Error("PDFページを取得できませんでした");
+                      throw new Error(
+                        "PDFページを取得できませんでした"
+                      );
                     }
 
                     const target =
-                      iframeDocument.querySelector("main") ||
+                      iframeDocument.querySelector(
+                        "main"
+                      ) ||
                       iframeDocument.body;
 
                     if (!target) {
-                      throw new Error("PDF化する内容が見つかりませんでした");
+                      throw new Error(
+                        "PDF化する内容が見つかりませんでした"
+                      );
                     }
 
                     // PDFに含めない操作ボタンなどを一時的に非表示にする
                     const pdfHideElements =
-                      iframeDocument.querySelectorAll(".pdf-hide");
+                      iframeDocument.querySelectorAll(
+                        ".pdf-hide"
+                      );
 
-                    pdfHideElements.forEach((element) => {
-                      (element as HTMLElement).style.display = "none";
-                    });
+                    pdfHideElements.forEach(
+                      (element) => {
+                        (
+                          element as HTMLElement
+                        ).style.display = "none";
+                      }
+                    );
 
-                    const pdf = await generatePDF(target as HTMLElement, {
-  margin: {
-    top: 10,
-    right: 10,
-    bottom: 10,
-    left: 10,
-  },
-  html2canvas: {
-    scale: 2,
-    useCORS: true,
-    backgroundColor: "#ffffff",
-  },
-  jsPDF: {
-    unit: "mm",
-    format: "a4",
-    orientation: "portrait",
-  },
-});
+                    const pdf = await generatePDF(
+                      target as HTMLElement,
+                      {
+                        margin: {
+                          top: 10,
+                          right: 10,
+                          bottom: 10,
+                          left: 10,
+                        },
+                        html2canvas: {
+                          scale: 2,
+                          useCORS: true,
+                          backgroundColor: "#ffffff",
+                        },
+                        jsPDF: {
+                          unit: "mm",
+                          format: "a4",
+                          orientation: "portrait",
+                        },
+                      }
+                    );
 
                     document.body.removeChild(iframe);
 
@@ -836,7 +952,9 @@ export default function RoutePage({ params }: Props) {
                     if (
                       navigator.share &&
                       navigator.canShare &&
-                      navigator.canShare({ files: [file] })
+                      navigator.canShare({
+                        files: [file],
+                      })
                     ) {
                       await navigator.share({
                         title: `${month}月 第${route}次路程`,
@@ -845,8 +963,10 @@ export default function RoutePage({ params }: Props) {
                       });
                     } else {
                       // ファイル共有に対応していない環境ではPDFを保存
-                      const downloadUrl = URL.createObjectURL(blob);
-                      const link = document.createElement("a");
+                      const downloadUrl =
+                        URL.createObjectURL(blob);
+                      const link =
+                        document.createElement("a");
                       link.href = downloadUrl;
                       link.download = file.name;
                       document.body.appendChild(link);
@@ -859,17 +979,24 @@ export default function RoutePage({ params }: Props) {
                       );
                     }
                   } catch (error) {
-                    console.error("PDF共有エラー", error);
+                    console.error(
+                      "PDF共有エラー",
+                      error
+                    );
 
-                    if ((error as Error)?.name !== "AbortError") {
+                    if (
+                      (error as Error)?.name !==
+                      "AbortError"
+                    ) {
                       alert(
                         "PDFの共有に失敗しました。もう一度お試しください。"
                       );
                     }
                   } finally {
-                    const iframe = document.querySelector(
-                      'iframe[src^="/team-reports/pdf/"]'
-                    );
+                    const iframe =
+                      document.querySelector(
+                        'iframe[src^="/team-reports/pdf/"]'
+                      );
                     iframe?.remove();
 
                     setSharingPdf(false);
@@ -881,7 +1008,9 @@ export default function RoutePage({ params }: Props) {
                     : "bg-white text-gray-700 shadow-sm hover:bg-gray-50"
                 } disabled:opacity-50`}
               >
-                {sharingPdf ? "PDF作成中..." : "📤 PDFを共有"}
+                {sharingPdf
+                  ? "PDF作成中..."
+                  : "📤 PDFを共有"}
               </button>
             </div>
 
@@ -895,7 +1024,9 @@ export default function RoutePage({ params }: Props) {
                   : "bg-green-50 text-green-700 hover:bg-green-100"
               } disabled:opacity-50`}
             >
-              {submitting ? "再提出中..." : "🔄 修正内容を再提出する"}
+              {submitting
+                ? "再提出中..."
+                : "🔄 修正内容を再提出する"}
             </button>
           </div>
         ) : (
@@ -906,7 +1037,9 @@ export default function RoutePage({ params }: Props) {
 
             <p
               className={`mt-3 text-sm leading-7 ${
-                darkMode ? "text-gray-400" : "text-gray-500"
+                darkMode
+                  ? "text-gray-400"
+                  : "text-gray-500"
               }`}
             >
               ①〜③をすべて記入すると、
@@ -927,7 +1060,11 @@ export default function RoutePage({ params }: Props) {
                     : "bg-gray-300"
               } disabled:opacity-50`}
             >
-              {submitting ? "提出中..." : allComplete ? "スタッフへ提出する" : "①〜③を記入してください"}
+              {submitting
+                ? "提出中..."
+                : allComplete
+                  ? "スタッフへ提出する"
+                  : "①〜③を記入してください"}
             </button>
           </div>
         )}

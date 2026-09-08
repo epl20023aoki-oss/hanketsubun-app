@@ -3,12 +3,21 @@
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, doc, getDocs, getDoc, setDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  setDoc,
+} from "firebase/firestore";
 import { auth, db } from "../../../../lib/firebase";
 
 type Props = {
   params: Promise<{
     route: string;
+  }>;
+  searchParams: Promise<{
+    month?: string;
   }>;
 };
 
@@ -20,8 +29,12 @@ type MemberGoal = {
   actions: string;
 };
 
-export default function GoalsPage({ params }: Props) {
+export default function GoalsPage({
+  params,
+  searchParams,
+}: Props) {
   const { route } = use(params);
+  const { month: monthParam } = use(searchParams);
 
   const [user, setUser] = useState<any>(null);
   const [members, setMembers] = useState<MemberGoal[]>([]);
@@ -32,7 +45,10 @@ export default function GoalsPage({ params }: Props) {
   const [mounted, setMounted] = useState(false);
 
   const currentMonth = new Date().toISOString().slice(0, 7);
-  const [, month] = currentMonth.split("-");
+
+  // URLで指定された月を使用する
+  const selectedMonth = monthParam || currentMonth;
+  const [, month] = selectedMonth.split("-");
 
   // ダークモード設定を読み込む
   useEffect(() => {
@@ -70,7 +86,7 @@ export default function GoalsPage({ params }: Props) {
             "users",
             user.uid,
             "team_reports",
-            currentMonth
+            selectedMonth
           )
         );
 
@@ -96,7 +112,7 @@ export default function GoalsPage({ params }: Props) {
             "users",
             user.uid,
             "team_reports",
-            currentMonth,
+            selectedMonth,
             "routes",
             `route_${route}`,
             "goals",
@@ -122,14 +138,17 @@ export default function GoalsPage({ params }: Props) {
 
             if (
               data.createdBy === user.uid &&
-              String(data.month || "") === currentMonth &&
+              String(data.month || "") === selectedMonth &&
               Number(data.route || 0) === Number(route)
             ) {
               sharedInputs = data.inputs || {};
             }
           });
         } catch (sharedError) {
-          console.error("共有入力データの読み込みエラー", sharedError);
+          console.error(
+            "共有入力データの読み込みエラー",
+            sharedError
+          );
         }
 
         const loadedMembers: MemberGoal[] =
@@ -167,7 +186,7 @@ export default function GoalsPage({ params }: Props) {
     };
 
     fetchMembers();
-  }, [user, currentMonth, route]);
+  }, [user, selectedMonth, route]);
 
   // 入力内容を更新
   const updateMember = (
@@ -217,7 +236,7 @@ export default function GoalsPage({ params }: Props) {
           "users",
           user.uid,
           "team_reports",
-          currentMonth,
+          selectedMonth,
           "routes",
           `route_${route}`,
           "goals",
@@ -269,7 +288,7 @@ export default function GoalsPage({ params }: Props) {
       }`}
     >
       <Link
-        href={`/team-reports/routes/${route}`}
+        href={`/team-reports/routes/${route}?month=${selectedMonth}`}
         className={`mb-6 inline-block text-sm transition ${
           darkMode
             ? "text-gray-400 hover:text-gray-200"
@@ -300,7 +319,7 @@ export default function GoalsPage({ params }: Props) {
           </p>
 
           <Link
-            href="/team-reports/members"
+            href={`/team-reports/members?month=${selectedMonth}`}
             className={`mt-4 inline-block text-xs ${
               darkMode
                 ? "text-green-400"

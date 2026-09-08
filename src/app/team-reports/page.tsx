@@ -28,8 +28,14 @@ export default function TeamReportsPage() {
   const [darkMode, setDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  // 現在の月
   const currentMonth = new Date().toISOString().slice(0, 7);
-  const [year, month] = currentMonth.split("-");
+
+  // 選択中の月
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const [monthLoaded, setMonthLoaded] = useState(false);
+
+  const [year, month] = selectedMonth.split("-");
 
   // ダークモード設定を読み込む
   useEffect(() => {
@@ -39,8 +45,21 @@ export default function TeamReportsPage() {
       setDarkMode(JSON.parse(savedMode));
     }
 
+    const savedMonth = localStorage.getItem("teamReportsMonth");
+
+    if (savedMonth) {
+      setSelectedMonth(savedMonth);
+    }
+
+    setMonthLoaded(true);
     setMounted(true);
   }, []);
+
+  // 選択した月を保存
+  useEffect(() => {
+    if (!monthLoaded) return;
+    localStorage.setItem("teamReportsMonth", selectedMonth);
+  }, [selectedMonth, monthLoaded]);
 
   // ログイン状態を確認
   useEffect(() => {
@@ -56,7 +75,7 @@ export default function TeamReportsPage() {
 
   // 班員構成を読み込む
   useEffect(() => {
-    if (!user) return;
+    if (!user || !monthLoaded) return;
 
     const fetchTeamMembers = async () => {
       const docSnap = await getDoc(
@@ -65,7 +84,7 @@ export default function TeamReportsPage() {
           "users",
           user.uid,
           "team_reports",
-          currentMonth
+          selectedMonth
         )
       );
 
@@ -76,18 +95,25 @@ export default function TeamReportsPage() {
         setLeader(data.leader || "");
         setSubLeader(data.subLeader || "");
         setMembers(data.members || []);
+      } else {
+        setTeam("");
+        setLeader("");
+        setSubLeader("");
+        setMembers([]);
       }
     };
 
     fetchTeamMembers();
-  }, [user, currentMonth]);
+  }, [user, selectedMonth, monthLoaded]);
 
   // 1〜5次路程の入力状況を読み込む
   useEffect(() => {
-    if (!user) return;
+    if (!user || !monthLoaded) return;
 
     const fetchRouteStatuses = async () => {
       try {
+        setLoadingRoutes(true);
+
         const statuses: RouteStatus[] = [];
 
         for (let route = 1; route <= 5; route++) {
@@ -96,7 +122,7 @@ export default function TeamReportsPage() {
             "users",
             user.uid,
             "team_reports",
-            currentMonth,
+            selectedMonth,
             "routes",
             `route_${route}`
           );
@@ -180,7 +206,7 @@ export default function TeamReportsPage() {
     };
 
     fetchRouteStatuses();
-  }, [user, currentMonth]);
+  }, [user, selectedMonth, monthLoaded]);
 
   const formatDate = (date: string) => {
     if (!date) return "";
@@ -241,9 +267,33 @@ export default function TeamReportsPage() {
             対象月
           </p>
 
-          <p className="mt-3 text-2xl font-light">
-            {year}年{Number(month)}月
-          </p>
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className={`mt-3 w-full rounded-xl border px-4 py-3 text-2xl font-light outline-none ${
+              darkMode
+                ? "border-gray-600 bg-gray-700 text-white"
+                : "border-gray-200 bg-white text-gray-800"
+            }`}
+          >
+            {Array.from({ length: 12 }, (_, index) => {
+              const date = new Date();
+              date.setMonth(date.getMonth() - index);
+
+              const optionYear = date.getFullYear();
+              const optionMonth = date.getMonth() + 1;
+
+              const value = `${optionYear}-${String(
+                optionMonth
+              ).padStart(2, "0")}`;
+
+              return (
+                <option key={value} value={value}>
+                  {optionYear}年{optionMonth}月
+                </option>
+              );
+            })}
+          </select>
         </div>
       </section>
 
@@ -271,7 +321,7 @@ export default function TeamReportsPage() {
           </p>
 
           <Link
-            href="/team-reports/members"
+            href={`/team-reports/members?month=${selectedMonth}`}
             className={`mt-4 inline-block text-xs ${
               darkMode
                 ? "text-green-400"
@@ -384,7 +434,7 @@ export default function TeamReportsPage() {
               : "text-gray-400"
           }`}
         >
-          今月の路程
+          {year}年{Number(month)}月の路程
         </p>
 
         {loadingRoutes ? (
@@ -402,7 +452,7 @@ export default function TeamReportsPage() {
             {routeStatuses.map((routeStatus) => (
               <Link
                 key={routeStatus.route}
-                href={`/team-reports/routes/${routeStatus.route}`}
+                href={`/team-reports/routes/${routeStatus.route}?month=${selectedMonth}`}
                 className="block"
               >
                 <div
