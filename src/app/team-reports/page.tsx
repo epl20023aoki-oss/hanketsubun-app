@@ -6,12 +6,24 @@ import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../lib/firebase";
 
+type RouteStatus = {
+  route: number;
+  startDate: string;
+  endDate: string;
+  reflection: boolean;
+  results: boolean;
+  goals: boolean;
+};
+
 export default function TeamReportsPage() {
   const [team, setTeam] = useState("");
   const [leader, setLeader] = useState("");
   const [subLeader, setSubLeader] = useState("");
   const [members, setMembers] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
+
+  const [routeStatuses, setRouteStatuses] = useState<RouteStatus[]>([]);
+  const [loadingRoutes, setLoadingRoutes] = useState(true);
 
   const currentMonth = new Date().toISOString().slice(0, 7);
   const [year, month] = currentMonth.split("-");
@@ -55,6 +67,114 @@ export default function TeamReportsPage() {
 
     fetchTeamMembers();
   }, [user, currentMonth]);
+
+  // 1〜5次路程の入力状況を読み込む
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchRouteStatuses = async () => {
+      try {
+        const statuses: RouteStatus[] = [];
+
+        for (let route = 1; route <= 5; route++) {
+          const routeRef = doc(
+            db,
+            "users",
+            user.uid,
+            "team_reports",
+            currentMonth,
+            "routes",
+            `route_${route}`
+          );
+
+          const routeSnap = await getDoc(routeRef);
+
+          let startDate = "";
+          let endDate = "";
+          let reflection = false;
+
+          if (routeSnap.exists()) {
+            const routeData = routeSnap.data();
+
+            startDate = routeData.startDate || "";
+            endDate = routeData.endDate || "";
+
+            reflection =
+              !!routeData.slogan ||
+              !!routeData.victory ||
+              !!routeData.defeat ||
+              !!routeData.currentState ||
+              !!routeData.changes ||
+              !!routeData.nextSlogan;
+          }
+
+          // ② 班員ごとの結果
+          const resultsSnap = await getDoc(
+            doc(
+              routeRef,
+              "results",
+              "members"
+            )
+          );
+
+          const resultsData = resultsSnap.exists()
+            ? resultsSnap.data()
+            : {};
+
+          const resultsUpdatedAt =
+            resultsData.updatedAt;
+
+          const results = !!resultsUpdatedAt;
+
+          // ③ 次路程の個人目標
+          const goalsSnap = await getDoc(
+            doc(
+              routeRef,
+              "goals",
+              "members"
+            )
+          );
+
+          const goalsData = goalsSnap.exists()
+            ? goalsSnap.data()
+            : {};
+
+          const goalsUpdatedAt =
+            goalsData.updatedAt;
+
+          const goals = !!goalsUpdatedAt;
+
+          statuses.push({
+            route,
+            startDate,
+            endDate,
+            reflection,
+            results,
+            goals,
+          });
+        }
+
+        setRouteStatuses(statuses);
+      } catch (error) {
+        console.error(
+          "路程状況の読み込みエラー",
+          error
+        );
+      } finally {
+        setLoadingRoutes(false);
+      }
+    };
+
+    fetchRouteStatuses();
+  }, [user, currentMonth]);
+
+  const formatDate = (date: string) => {
+    if (!date) return "";
+
+    const [, m, d] = date.split("-");
+
+    return `${Number(m)}月${Number(d)}日`;
+  };
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
@@ -142,7 +262,10 @@ export default function TeamReportsPage() {
               {members.length > 0 ? (
                 <div className="mt-1 space-y-1">
                   {members
-                    .filter((member) => member.trim() !== "")
+                    .filter(
+                      (member) =>
+                        member.trim() !== ""
+                    )
                     .map((member, index) => (
                       <p key={index}>
                         {member}
@@ -165,29 +288,102 @@ export default function TeamReportsPage() {
           今月の路程
         </p>
 
-        <div className="space-y-4">
-          {[1, 2, 3, 4, 5].map((route) => (
-            <Link
-              key={route}
-              href={`/team-reports/routes/${route}`}
-              className="block"
-            >
-              <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
-                <p className="text-sm text-gray-400">
-                  {year}年{Number(month)}月
-                </p>
+        {loadingRoutes ? (
+          <p className="text-sm text-gray-400">
+            路程状況を読み込み中...
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {routeStatuses.map((routeStatus) => (
+              <Link
+                key={routeStatus.route}
+                href={`/team-reports/routes/${routeStatus.route}`}
+                className="block"
+              >
+                <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+                  <p className="text-sm text-gray-400">
+                    {year}年{Number(month)}月
+                  </p>
 
-                <p className="mt-2 text-lg">
-                  {route}次路程
-                </p>
+                  <p className="mt-2 text-lg">
+                    {routeStatus.route}次路程
+                  </p>
 
-                <p className="mt-3 text-xs text-green-600">
-                  レポートを開く →
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
+                  <p className="mt-2 text-sm text-gray-400">
+                    {routeStatus.startDate &&
+                    routeStatus.endDate
+                      ? `${formatDate(
+                          routeStatus.startDate
+                        )}〜${formatDate(
+                          routeStatus.endDate
+                        )}`
+                      : "期間：未設定"}
+                  </p>
+
+                  <div className="mt-5 space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500">
+                        ① 前路程の振り返り
+                      </span>
+
+                      <span
+                        className={
+                          routeStatus.reflection
+                            ? "text-green-600"
+                            : "text-gray-400"
+                        }
+                      >
+                        {routeStatus.reflection
+                          ? "✓ 記入済み"
+                          : "未記入"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500">
+                        ② 班員ごとの結果
+                      </span>
+
+                      <span
+                        className={
+                          routeStatus.results
+                            ? "text-green-600"
+                            : "text-gray-400"
+                        }
+                      >
+                        {routeStatus.results
+                          ? "✓ 記入済み"
+                          : "未記入"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500">
+                        ③ 次路程の個人目標
+                      </span>
+
+                      <span
+                        className={
+                          routeStatus.goals
+                            ? "text-green-600"
+                            : "text-gray-400"
+                        }
+                      >
+                        {routeStatus.goals
+                          ? "✓ 記入済み"
+                          : "未記入"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="mt-5 text-xs text-green-600">
+                    レポートを開く →
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );
