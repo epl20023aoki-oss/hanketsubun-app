@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
+import generatePDF from "jspdf-html2canvas";
 import { onAuthStateChanged } from "firebase/auth";
 import {
   collection,
@@ -40,6 +41,7 @@ export default function RoutePage({ params }: Props) {
 
   const [inputUrl, setInputUrl] = useState("");
   const [urlCopied, setUrlCopied] = useState(false);
+  const [sharingPdf, setSharingPdf] = useState(false);
 
   const [darkMode, setDarkMode] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -735,34 +737,143 @@ export default function RoutePage({ params }: Props) {
 
               <button
                 type="button"
+                disabled={sharingPdf}
                 onClick={async () => {
-                  const shareData = {
-                    title: `${month}月 第${route}次路程`,
-                    text: `${month}月 第${route}次路程の週間班長レポートです。`,
-                    url: window.location.href,
-                  };
+                  if (typeof window === "undefined" || !user || sharingPdf) return;
 
                   try {
-                    if (navigator.share) {
-                      await navigator.share(shareData);
+                    setSharingPdf(true);
+
+                    const pdfUrl = `/team-reports/pdf/${user.uid}_${currentMonth}_route_${route}`;
+
+                    // PDF表示ページを一時的に読み込み、画面に表示された内容をPDF化する
+                    const iframe = document.createElement("iframe");
+                    iframe.src = pdfUrl;
+                    iframe.style.position = "fixed";
+                    iframe.style.left = "-10000px";
+                    iframe.style.top = "0";
+                    iframe.style.width = "794px";
+                    iframe.style.height = "1123px";
+                    iframe.style.border = "0";
+                    iframe.style.background = "#ffffff";
+
+                    document.body.appendChild(iframe);
+
+                    await new Promise<void>((resolve, reject) => {
+                      const timeout = window.setTimeout(() => {
+                        reject(new Error("PDFページの読み込みがタイムアウトしました"));
+                      }, 15000);
+
+                      iframe.onload = () => {
+                        window.clearTimeout(timeout);
+                        resolve();
+                      };
+
+                      iframe.onerror = () => {
+                        window.clearTimeout(timeout);
+                        reject(new Error("PDFページの読み込みに失敗しました"));
+                      };
+                    });
+
+                    // PDFページ内の本文が描画されるまで少し待つ
+                    await new Promise((resolve) => setTimeout(resolve, 800));
+
+                    const iframeDocument =
+                      iframe.contentDocument || iframe.contentWindow?.document;
+
+                    if (!iframeDocument) {
+                      throw new Error("PDFページを取得できませんでした");
+                    }
+
+                    const target =
+                      iframeDocument.querySelector("main") ||
+                      iframeDocument.body;
+
+                    if (!target) {
+                      throw new Error("PDF化する内容が見つかりませんでした");
+                    }
+
+                    const pdf = await generatePDF(target as HTMLElement, {
+  margin: {
+    top: 10,
+    right: 10,
+    bottom: 10,
+    left: 10,
+  },
+  html2canvas: {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: "#ffffff",
+  },
+  jsPDF: {
+    unit: "mm",
+    format: "a4",
+    orientation: "portrait",
+  },
+});
+
+                    document.body.removeChild(iframe);
+
+                    const blob = pdf.output("blob");
+                    const file = new File(
+                      [blob],
+                      `${month}月_第${route}次路程_週間班長レポート.pdf`,
+                      {
+                        type: "application/pdf",
+                      }
+                    );
+
+                    // ファイル共有に対応しているスマートフォン等では、
+                    // PDFそのものを共有する
+                    if (
+                      navigator.share &&
+                      navigator.canShare &&
+                      navigator.canShare({ files: [file] })
+                    ) {
+                      await navigator.share({
+                        title: `${month}月 第${route}次路程`,
+                        text: `${month}月 第${route}次路程の週間班長レポートです。`,
+                        files: [file],
+                      });
                     } else {
-                      await navigator.clipboard.writeText(window.location.href);
-                      alert("ページURLをコピーしました");
+                      // ファイル共有に対応していない環境ではPDFを保存
+                      const downloadUrl = URL.createObjectURL(blob);
+                      const link = document.createElement("a");
+                      link.href = downloadUrl;
+                      link.download = file.name;
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                      URL.revokeObjectURL(downloadUrl);
+
+                      alert(
+                        "この端末ではPDFの直接共有に対応していないため、PDFを保存しました。保存したPDFをLINEなどから共有してください。"
+                      );
                     }
                   } catch (error) {
+                    console.error("PDF共有エラー", error);
+
                     if ((error as Error)?.name !== "AbortError") {
-                      console.error("共有エラー", error);
-                      alert("共有に失敗しました");
+                      alert(
+                        "PDFの共有に失敗しました。もう一度お試しください。"
+                      );
                     }
+                  } finally {
+                    const iframe = document.querySelector(
+                      'iframe[src^="/team-reports/pdf/"]'
+                    );
+                    iframe?.remove();
+
+                    setSharingPdf(false);
                   }
                 }}
                 className={`rounded-2xl py-3 text-sm transition ${
                   darkMode
                     ? "bg-gray-800 text-gray-200 hover:bg-gray-700"
                     : "bg-white text-gray-700 shadow-sm hover:bg-gray-50"
-                }`}
+                } disabled:opacity-50`}
               >
-                📤 共有
+                {sharingPdf ? "PDF作成中..." : "📤 PDFを共有"}
               </button>
             </div>
 
