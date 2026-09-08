@@ -27,8 +27,22 @@ export default function ReflectionPage({ params }: Props) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const [darkMode, setDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
   const currentMonth = new Date().toISOString().slice(0, 7);
   const [, month] = currentMonth.split("-");
+
+  // ダークモード設定を読み込む
+  useEffect(() => {
+    const savedMode = localStorage.getItem("darkMode");
+
+    if (savedMode) {
+      setDarkMode(JSON.parse(savedMode));
+    }
+
+    setMounted(true);
+  }, []);
 
   // ログイン状態を確認
   useEffect(() => {
@@ -128,9 +142,17 @@ export default function ReflectionPage({ params }: Props) {
     }
   };
 
+  if (!mounted) return null;
+
   if (loading) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
+      <main
+        className={`mx-auto min-h-screen max-w-2xl px-6 py-10 transition-all duration-300 ${
+          darkMode
+            ? "bg-[#111827] text-white"
+            : "bg-gray-50 text-gray-900"
+        }`}
+      >
         <p className="text-sm text-gray-400">
           読み込み中...
         </p>
@@ -139,10 +161,20 @@ export default function ReflectionPage({ params }: Props) {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-10">
+    <main
+      className={`mx-auto min-h-screen max-w-2xl px-6 py-10 transition-all duration-300 ${
+        darkMode
+          ? "bg-[#111827] text-white"
+          : "bg-gray-50 text-gray-900"
+      }`}
+    >
       <Link
         href={`/team-reports/routes/${route}`}
-        className="mb-6 inline-block text-sm text-gray-400"
+        className={`mb-6 inline-block text-sm transition ${
+          darkMode
+            ? "text-gray-400 hover:text-gray-200"
+            : "text-gray-400 hover:text-gray-600"
+        }`}
       >
         ← 第{route}次路程へ戻る
       </Link>
@@ -157,7 +189,13 @@ export default function ReflectionPage({ params }: Props) {
 
       <div className="space-y-6">
         {/* 班スローガン */}
-        <section className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+        <section
+          className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+            darkMode
+              ? "bg-gray-800/80"
+              : "bg-gray-50"
+          }`}
+        >
           <p className="mb-3 text-sm text-gray-400">
             班スローガン
           </p>
@@ -166,12 +204,22 @@ export default function ReflectionPage({ params }: Props) {
             value={slogan}
             onChange={(e) => setSlogan(e.target.value)}
             placeholder="今路程の班スローガンを入力してください"
-            className="min-h-28 w-full resize-none rounded-2xl border border-gray-300 bg-white p-4 outline-none"
+            className={`min-h-28 w-full resize-none rounded-2xl border p-4 outline-none transition ${
+              darkMode
+                ? "border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                : "border-gray-300 bg-white text-gray-900"
+            }`}
           />
         </section>
 
         {/* 勝利点 */}
-        <section className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+        <section
+          className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+            darkMode
+              ? "bg-gray-800/80"
+              : "bg-gray-50"
+          }`}
+        >
           <p className="mb-3 text-sm text-gray-400">
             班としての勝利点
           </p>
@@ -180,12 +228,22 @@ export default function ReflectionPage({ params }: Props) {
             value={victory}
             onChange={(e) => setVictory(e.target.value)}
             placeholder="班としての取り組みの勝利点を入力してください"
-            className="min-h-40 w-full resize-none rounded-2xl border border-gray-300 bg-white p-4 outline-none"
+            className={`min-h-40 w-full resize-none rounded-2xl border p-4 outline-none transition ${
+              darkMode
+                ? "border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                : "border-gray-300 bg-white text-gray-900"
+            }`}
           />
         </section>
 
         {/* 敗北点 */}
-        <section className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+        <section
+          className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+            darkMode
+              ? "bg-gray-800/80"
+              : "bg-gray-50"
+          }`}
+        >
           <p className="mb-3 text-sm text-gray-400">
             班としての敗北点
           </p>
@@ -194,12 +252,22 @@ export default function ReflectionPage({ params }: Props) {
             value={defeat}
             onChange={(e) => setDefeat(e.target.value)}
             placeholder="班としての取り組みの敗北点を入力してください"
-            className="min-h-40 w-full resize-none rounded-2xl border border-gray-300 bg-white p-4 outline-none"
+            className={`min-h-40 w-full resize-none rounded-2xl border p-4 outline-none transition ${
+              darkMode
+                ? "border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                : "border-gray-300 bg-white text-gray-900"
+            }`}
           />
         </section>
 
         {/* 現状 */}
-        <section className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+        <section
+          className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+            darkMode
+              ? "bg-gray-800/80"
+              : "bg-gray-50"
+          }`}
+        >
           <p className="mb-3 text-sm text-gray-400">
             班としての具体的な取り組み・現状
           </p>
@@ -210,12 +278,22 @@ export default function ReflectionPage({ params }: Props) {
               setCurrentState(e.target.value)
             }
             placeholder="現在の班の状況や具体的な取り組みを入力してください"
-            className="min-h-40 w-full resize-none rounded-2xl border border-gray-300 bg-white p-4 outline-none"
+            className={`min-h-40 w-full resize-none rounded-2xl border p-4 outline-none transition ${
+              darkMode
+                ? "border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                : "border-gray-300 bg-white text-gray-900"
+            }`}
           />
         </section>
 
         {/* 変更・追加 */}
-        <section className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+        <section
+          className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+            darkMode
+              ? "bg-gray-800/80"
+              : "bg-gray-50"
+          }`}
+        >
           <p className="mb-3 text-sm text-gray-400">
             変更・追加した具体的な取り組み
           </p>
@@ -224,12 +302,22 @@ export default function ReflectionPage({ params }: Props) {
             value={changes}
             onChange={(e) => setChanges(e.target.value)}
             placeholder="変更したこと、追加した取り組みを入力してください"
-            className="min-h-40 w-full resize-none rounded-2xl border border-gray-300 bg-white p-4 outline-none"
+            className={`min-h-40 w-full resize-none rounded-2xl border p-4 outline-none transition ${
+              darkMode
+                ? "border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                : "border-gray-300 bg-white text-gray-900"
+            }`}
           />
         </section>
 
         {/* 次路程の班スローガン */}
-        <section className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+        <section
+          className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+            darkMode
+              ? "bg-gray-800/80"
+              : "bg-gray-50"
+          }`}
+        >
           <p className="mb-3 text-sm text-gray-400">
             次路程の班スローガン
           </p>
@@ -240,7 +328,11 @@ export default function ReflectionPage({ params }: Props) {
               setNextSlogan(e.target.value)
             }
             placeholder="次路程の班スローガンを入力してください"
-            className="min-h-28 w-full resize-none rounded-2xl border border-gray-300 bg-white p-4 outline-none"
+            className={`min-h-28 w-full resize-none rounded-2xl border p-4 outline-none transition ${
+              darkMode
+                ? "border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                : "border-gray-300 bg-white text-gray-900"
+            }`}
           />
         </section>
 
@@ -249,7 +341,11 @@ export default function ReflectionPage({ params }: Props) {
           type="button"
           onClick={saveReflection}
           disabled={saving}
-          className="w-full rounded-2xl bg-gray-800 py-4 text-white disabled:opacity-50"
+          className={`w-full rounded-2xl py-4 text-white transition ${
+            darkMode
+              ? "bg-gray-700 hover:bg-gray-600"
+              : "bg-gray-800 hover:bg-gray-700"
+          } disabled:opacity-50`}
         >
           {saving ? "保存中..." : "保存"}
         </button>

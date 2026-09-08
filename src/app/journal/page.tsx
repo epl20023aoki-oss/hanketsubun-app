@@ -54,6 +54,7 @@ const [actions, setActions] = useState([
 ]);
 const [darkMode, setDarkMode] =
   useState(false);
+const [mounted, setMounted] = useState(false);
 const [logs, setLogs] = useState<any[]>([]);
 const recordedDates = logs.map(
   (log) => log.id
@@ -70,6 +71,22 @@ const [name, setName] =
 
 const [team, setTeam] =
   useState("");
+
+useEffect(() => {
+  const savedMode = localStorage.getItem("darkMode");
+
+  if (savedMode !== null) {
+    setDarkMode(savedMode === "true");
+  }
+
+  setMounted(true);
+}, []);
+
+useEffect(() => {
+  if (!mounted) return;
+
+  localStorage.setItem("darkMode", String(darkMode));
+}, [darkMode, mounted]);
 
 useEffect(() => {
 
@@ -478,7 +495,9 @@ useEffect(() => {
 
 }, [reflection]);
 
-return (
+if (!mounted) return null;
+
+ return (
   <main
   className={`mx-auto min-h-screen max-w-2xl px-4 py-10 transition-all duration-300 ${
     darkMode
@@ -540,9 +559,16 @@ return (
       </h1>
 
       <button
-        onClick={() =>
-          setDarkMode(!darkMode)
-        }
+        onClick={() => {
+          const nextMode = !darkMode;
+
+          setDarkMode(nextMode);
+
+          localStorage.setItem(
+            "darkMode",
+            String(nextMode)
+          );
+        }}
         className="rounded-full bg-gray-200 px-3 py-1 text-xs rounded-full"
       >
         {darkMode ? "☀️" : "🌙"}

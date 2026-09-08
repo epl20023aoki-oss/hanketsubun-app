@@ -26,6 +26,9 @@ export default function MonthlyGoalsPage() {
   const [darkMode, setDarkMode] =
     useState(false);
 
+  const [mounted, setMounted] =
+    useState(false);
+
   const [saving, setSaving] =
     useState(false);
 
@@ -65,19 +68,24 @@ export default function MonthlyGoalsPage() {
   }, []);
 
   useEffect(() => {
-
     const savedMode =
-      localStorage.getItem(
-        "darkMode"
-      );
+      localStorage.getItem("darkMode");
 
-    if (savedMode) {
-      setDarkMode(
-        JSON.parse(savedMode)
-      );
+    if (savedMode !== null) {
+      setDarkMode(savedMode === "true");
     }
 
+    setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    localStorage.setItem(
+      "darkMode",
+      String(darkMode)
+    );
+  }, [darkMode, mounted]);
 
   const fetchGoals = async () => {
 
@@ -206,6 +214,8 @@ useEffect(() => {
 }, [user]);
 
 
+  if (!mounted) return null;
+
   return (
     <main
       className={`min-h-screen px-4 py-6 ${
@@ -230,17 +240,12 @@ useEffect(() => {
 
             <button
               onClick={() => {
+                const nextMode = !darkMode;
 
-                const newMode =
-                  !darkMode;
-
-                setDarkMode(newMode);
-
+                setDarkMode(nextMode);
                 localStorage.setItem(
                   "darkMode",
-                  JSON.stringify(
-                    newMode
-                  )
+                  String(nextMode)
                 );
               }}
             >

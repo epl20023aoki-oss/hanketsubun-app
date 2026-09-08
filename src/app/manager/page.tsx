@@ -51,7 +51,7 @@ export default function ManagerLoginPage() {
           </h1>
 
           <p className="mt-2 text-sm text-gray-500">
-            月末レポート管理画面
+            提出レポート管理画面
           </p>
 
         </div>

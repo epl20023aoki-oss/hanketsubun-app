@@ -37,11 +37,25 @@ export default function RoutePage({ params }: Props) {
   const [submitting, setSubmitting] =
     useState(false);
 
+  const [darkMode, setDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
   const currentMonth = new Date()
     .toISOString()
     .slice(0, 7);
 
   const [, month] = currentMonth.split("-");
+
+  // ダークモード設定を読み込む
+  useEffect(() => {
+    const savedMode = localStorage.getItem("darkMode");
+
+    if (savedMode) {
+      setDarkMode(JSON.parse(savedMode));
+    }
+
+    setMounted(true);
+  }, []);
 
   // ログイン状態を確認
   useEffect(() => {
@@ -155,7 +169,6 @@ export default function RoutePage({ params }: Props) {
     if (!date) return "";
 
     const [, m, d] = date.split("-");
-
     return `${Number(m)}月${Number(d)}日`;
   };
 
@@ -178,11 +191,11 @@ export default function RoutePage({ params }: Props) {
       return;
     }
 
-      const confirmed = window.confirm(
-  submitted
-    ? "この路程レポートを修正内容で再提出しますか？"
-    : "この路程レポートをスタッフへ提出しますか？"
-);
+    const confirmed = window.confirm(
+      submitted
+        ? "この路程レポートを修正内容で再提出しますか？"
+        : "この路程レポートをスタッフへ提出しますか？"
+    );
 
     if (!confirmed) return;
 
@@ -362,7 +375,11 @@ export default function RoutePage({ params }: Props) {
 
       setSubmitted(true);
 
-      alert("スタッフへ提出しました");
+      alert(
+        submitted
+          ? "修正内容を再提出しました"
+          : "スタッフへ提出しました"
+      );
     } catch (error) {
       console.error(
         "レポート提出エラー",
@@ -375,9 +392,17 @@ export default function RoutePage({ params }: Props) {
     }
   };
 
+  if (!mounted) return null;
+
   if (loading) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
+      <main
+        className={`mx-auto min-h-screen max-w-2xl px-6 py-10 transition-all duration-300 ${
+          darkMode
+            ? "bg-[#111827] text-white"
+            : "bg-gray-50 text-gray-900"
+        }`}
+      >
         <p className="text-sm text-gray-400">
           読み込み中...
         </p>
@@ -386,15 +411,25 @@ export default function RoutePage({ params }: Props) {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-10">
+    <main
+      className={`mx-auto min-h-screen max-w-2xl px-6 py-10 transition-all duration-300 ${
+        darkMode
+          ? "bg-[#111827] text-white"
+          : "bg-gray-50 text-gray-900"
+      }`}
+    >
       <Link
         href="/team-reports"
-        className="mb-6 inline-block text-sm text-gray-400"
+        className={`mb-6 inline-block text-sm transition ${
+          darkMode
+            ? "text-gray-400 hover:text-gray-200"
+            : "text-gray-400 hover:text-gray-600"
+        }`}
       >
         ← 週間班長レポートへ戻る
       </Link>
 
-      <h1 className="mb-2 text-3xl font-light tracking-wide">
+      <h1 className="mb-2 text-3xl font-light tracking-wide text-gray-900 dark:text-white">
         {Number(month)}月 第{route}次路程
       </h1>
 
@@ -408,7 +443,9 @@ export default function RoutePage({ params }: Props) {
 
       <Link
         href={`/team-reports/routes/${route}/settings`}
-        className="mb-10 inline-block text-xs text-green-600"
+        className={`mb-10 inline-block text-xs ${
+          darkMode ? "text-green-400" : "text-green-600"
+        }`}
       >
         期間を設定 →
       </Link>
@@ -419,7 +456,9 @@ export default function RoutePage({ params }: Props) {
           href={`/team-reports/routes/${route}/reflection`}
           className="block"
         >
-          <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+          <div className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+              darkMode ? "bg-gray-800/80" : "bg-white"
+            }`}>
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-400">
                 ① 前路程の振り返り
@@ -428,7 +467,7 @@ export default function RoutePage({ params }: Props) {
               <span
                 className={
                   reflectionComplete
-                    ? "text-sm text-green-600"
+                    ? `text-sm ${darkMode ? "text-green-400" : "text-green-600"}`
                     : "text-sm text-gray-400"
                 }
               >
@@ -438,11 +477,13 @@ export default function RoutePage({ params }: Props) {
               </span>
             </div>
 
-            <p className="mt-3 text-lg leading-8">
+            <p className="mt-3 text-lg leading-8 text-gray-900 dark:text-gray-100">
               班としての歩みを振り返る
             </p>
 
-            <p className="mt-4 text-xs text-green-600">
+            <p className={`mt-4 text-xs ${
+              darkMode ? "text-green-400" : "text-green-600"
+            }`}>
               記入する →
             </p>
           </div>
@@ -453,7 +494,9 @@ export default function RoutePage({ params }: Props) {
           href={`/team-reports/routes/${route}/results`}
           className="block"
         >
-          <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+          <div className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+              darkMode ? "bg-gray-800/80" : "bg-white"
+            }`}>
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-400">
                 ② 班員ごとの結果
@@ -462,7 +505,7 @@ export default function RoutePage({ params }: Props) {
               <span
                 className={
                   resultsComplete
-                    ? "text-sm text-green-600"
+                    ? `text-sm ${darkMode ? "text-green-400" : "text-green-600"}`
                     : "text-sm text-gray-400"
                 }
               >
@@ -472,11 +515,13 @@ export default function RoutePage({ params }: Props) {
               </span>
             </div>
 
-            <p className="mt-3 text-lg leading-8">
+            <p className="mt-3 text-lg leading-8 text-gray-900 dark:text-gray-100">
               班員一人ひとりの結果を記録する
             </p>
 
-            <p className="mt-4 text-xs text-green-600">
+            <p className={`mt-4 text-xs ${
+              darkMode ? "text-green-400" : "text-green-600"
+            }`}>
               記入する →
             </p>
           </div>
@@ -487,7 +532,9 @@ export default function RoutePage({ params }: Props) {
           href={`/team-reports/routes/${route}/goals`}
           className="block"
         >
-          <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+          <div className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+              darkMode ? "bg-gray-800/80" : "bg-white"
+            }`}>
             <div className="flex items-center justify-between">
               <p className="text-sm text-gray-400">
                 ③ 次路程の個人目標
@@ -496,7 +543,7 @@ export default function RoutePage({ params }: Props) {
               <span
                 className={
                   goalsComplete
-                    ? "text-sm text-green-600"
+                    ? `text-sm ${darkMode ? "text-green-400" : "text-green-600"}`
                     : "text-sm text-gray-400"
                 }
               >
@@ -506,11 +553,13 @@ export default function RoutePage({ params }: Props) {
               </span>
             </div>
 
-            <p className="mt-3 text-lg leading-8">
+            <p className="mt-3 text-lg leading-8 text-gray-900 dark:text-gray-100">
               次の路程に向けた目標を記録する
             </p>
 
-            <p className="mt-4 text-xs text-green-600">
+            <p className={`mt-4 text-xs ${
+              darkMode ? "text-green-400" : "text-green-600"
+            }`}>
               記入する →
             </p>
           </div>
@@ -519,75 +568,31 @@ export default function RoutePage({ params }: Props) {
 
       {/* 提出 */}
       <section className="mt-8">
-       {submitted ? (
-  <div className="rounded-3xl bg-green-50 p-6 text-center">
-    <p className="text-lg text-green-700">
-      ✓ スタッフへ提出済み
-    </p>
+        {submitted ? (
+          <div className={`rounded-3xl p-6 text-center ${
+              darkMode ? "bg-green-950/40" : "bg-green-50"
+            }`}>
+            <p className={`text-lg ${
+              darkMode ? "text-green-300" : "text-green-700"
+            }`}>
+              ✓ スタッフへ提出済み
+            </p>
 
-    <p className="mt-2 text-sm text-green-600">
-      このレポートは提出されています
-    </p>
-
-    <button
-      type="button"
-      onClick={() => {
-        const submissionId =
-          `${user.uid}_${currentMonth}_route_${route}`;
-
-        window.location.href =
-          `/team-reports/pdf/${submissionId}`;
-      }}
-      className="mt-5 w-full rounded-2xl bg-white py-4 text-sm text-gray-700 shadow-sm"
-    >
-      📄 PDFを表示
-    </button>
-    <button
-  type="button"
-  onClick={async () => {
-    const submissionId =
-      `${user.uid}_${currentMonth}_route_${route}`;
-
-    const shareUrl =
-      `${window.location.origin}/team-reports/pdf/${submissionId}`;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${Number(month)}月 第${route}次路程 週間班長レポート`,
-          text: `${Number(month)}月 第${route}次路程の週間班長レポートです。`,
-          url: shareUrl,
-        });
-      } catch (error) {
-        console.log("共有をキャンセルしました");
-      }
-    } else {
-      await navigator.clipboard.writeText(shareUrl);
-      alert("レポートのURLをコピーしました");
-    }
-  }}
-  className="mt-3 w-full rounded-2xl bg-gray-800 py-4 text-sm text-white shadow-sm"
->
-  📤 共有
-</button>
-
-<button
-  type="button"
-  onClick={submitReport}
-  disabled={submitting || !allComplete}
-  className="mt-3 w-full rounded-2xl bg-green-600 py-4 text-sm text-white shadow-sm disabled:opacity-50"
->
-  {submitting ? "再提出中..." : "🔄 修正内容を再提出する"}
-</button>
-
-  </div>
-) : (
-          <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+            <p className={`mt-2 text-sm ${
+              darkMode ? "text-green-400" : "text-green-600"
+            }`}>
+              このレポートは提出されています
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-3xl bg-white p-6 shadow-sm dark:bg-gray-800">
             <p className="text-sm text-gray-400">
               レポートの提出
             </p>
 
-            <p className="mt-3 text-sm leading-7 text-gray-500">
+            <p className={`mt-3 text-sm leading-7 ${
+              darkMode ? "text-gray-400" : "text-gray-500"
+            }`}>
               ①〜③をすべて記入すると、
               スタッフへ提出できます。
             </p>
@@ -600,12 +605,20 @@ export default function RoutePage({ params }: Props) {
               }
               className={`mt-5 w-full rounded-2xl py-4 text-white transition ${
                 allComplete
-                  ? "bg-gray-800"
-                  : "bg-gray-300"
+                  ? darkMode
+                    ? "bg-gray-700 hover:bg-gray-600"
+                    : "bg-gray-800 hover:bg-gray-700"
+                  : darkMode
+                    ? "bg-gray-700"
+                    : "bg-gray-300"
               } disabled:opacity-50`}
             >
               {submitting
-                ? "提出中..."
+                ? submitted
+                  ? "再提出中..."
+                  : "提出中..."
+                : submitted
+                ? "修正内容を再提出する"
                 : allComplete
                 ? "スタッフへ提出する"
                 : "①〜③を記入してください"}

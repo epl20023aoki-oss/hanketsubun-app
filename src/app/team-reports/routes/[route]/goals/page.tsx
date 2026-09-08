@@ -28,8 +28,22 @@ export default function GoalsPage({ params }: Props) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const [darkMode, setDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
   const currentMonth = new Date().toISOString().slice(0, 7);
   const [, month] = currentMonth.split("-");
+
+  // ダークモード設定を読み込む
+  useEffect(() => {
+    const savedMode = localStorage.getItem("darkMode");
+
+    if (savedMode) {
+      setDarkMode(JSON.parse(savedMode));
+    }
+
+    setMounted(true);
+  }, []);
 
   // ログイン状態を確認
   useEffect(() => {
@@ -198,9 +212,17 @@ export default function GoalsPage({ params }: Props) {
     }
   };
 
+  if (!mounted) return null;
+
   if (loading) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
+      <main
+        className={`mx-auto min-h-screen max-w-2xl px-6 py-10 transition-all duration-300 ${
+          darkMode
+            ? "bg-[#111827] text-white"
+            : "bg-gray-50 text-gray-900"
+        }`}
+      >
         <p className="text-sm text-gray-400">
           読み込み中...
         </p>
@@ -209,10 +231,20 @@ export default function GoalsPage({ params }: Props) {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-10">
+    <main
+      className={`mx-auto min-h-screen max-w-2xl px-6 py-10 transition-all duration-300 ${
+        darkMode
+          ? "bg-[#111827] text-white"
+          : "bg-gray-50 text-gray-900"
+      }`}
+    >
       <Link
         href={`/team-reports/routes/${route}`}
-        className="mb-6 inline-block text-sm text-gray-400"
+        className={`mb-6 inline-block text-sm transition ${
+          darkMode
+            ? "text-gray-400 hover:text-gray-200"
+            : "text-gray-400 hover:text-gray-600"
+        }`}
       >
         ← 第{route}次路程へ戻る
       </Link>
@@ -226,14 +258,24 @@ export default function GoalsPage({ params }: Props) {
       </p>
 
       {members.length === 0 ? (
-        <section className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+        <section
+          className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+            darkMode
+              ? "bg-gray-800/80"
+              : "bg-gray-50"
+          }`}
+        >
           <p className="text-sm text-gray-400">
             班員構成がまだ登録されていません。
           </p>
 
           <Link
             href="/team-reports/members"
-            className="mt-4 inline-block text-xs text-green-600"
+            className={`mt-4 inline-block text-xs ${
+              darkMode
+                ? "text-green-400"
+                : "text-green-600"
+            }`}
           >
             班員構成を登録する →
           </Link>
@@ -243,7 +285,11 @@ export default function GoalsPage({ params }: Props) {
           {members.map((member, index) => (
             <section
               key={`${member.name}-${index}`}
-              className="rounded-3xl bg-gray-50 p-6 shadow-sm"
+              className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+                darkMode
+                  ? "bg-gray-800/80"
+                  : "bg-gray-50"
+              }`}
             >
               <p className="mb-6 text-xl">
                 {member.name}
@@ -269,7 +315,11 @@ export default function GoalsPage({ params }: Props) {
                         )
                       }
                       placeholder="件数"
-                      className="w-full rounded-2xl border border-gray-300 bg-white p-4 pr-12 outline-none"
+                      className={`w-full rounded-2xl border p-4 pr-12 outline-none transition ${
+                        darkMode
+                          ? "border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                          : "border-gray-300 bg-white text-gray-900"
+                      }`}
                     />
 
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">
@@ -290,7 +340,11 @@ export default function GoalsPage({ params }: Props) {
                         )
                       }
                       placeholder="金額"
-                      className="w-full rounded-2xl border border-gray-300 bg-white p-4 pr-12 outline-none"
+                      className={`w-full rounded-2xl border p-4 pr-12 outline-none transition ${
+                        darkMode
+                          ? "border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                          : "border-gray-300 bg-white text-gray-900"
+                      }`}
                     />
 
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">
@@ -316,7 +370,11 @@ export default function GoalsPage({ params }: Props) {
                     )
                   }
                   placeholder="次路程で意識する内的目標を入力してください"
-                  className="min-h-32 w-full resize-none rounded-2xl border border-gray-300 bg-white p-4 outline-none"
+                  className={`min-h-32 w-full resize-none rounded-2xl border p-4 outline-none transition ${
+                    darkMode
+                      ? "border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                      : "border-gray-300 bg-white text-gray-900"
+                  }`}
                 />
               </div>
 
@@ -336,7 +394,11 @@ export default function GoalsPage({ params }: Props) {
                     )
                   }
                   placeholder="目標達成のための具体的な取り組みを入力してください"
-                  className="min-h-40 w-full resize-none rounded-2xl border border-gray-300 bg-white p-4 outline-none"
+                  className={`min-h-40 w-full resize-none rounded-2xl border p-4 outline-none transition ${
+                    darkMode
+                      ? "border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                      : "border-gray-300 bg-white text-gray-900"
+                  }`}
                 />
               </div>
             </section>
@@ -346,7 +408,11 @@ export default function GoalsPage({ params }: Props) {
             type="button"
             onClick={saveGoals}
             disabled={saving}
-            className="w-full rounded-2xl bg-gray-800 py-4 text-white disabled:opacity-50"
+            className={`w-full rounded-2xl py-4 text-white transition ${
+              darkMode
+                ? "bg-gray-700 hover:bg-gray-600"
+                : "bg-gray-800 hover:bg-gray-700"
+            } disabled:opacity-50`}
           >
             {saving ? "保存中..." : "保存"}
           </button>

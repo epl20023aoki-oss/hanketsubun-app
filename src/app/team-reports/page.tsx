@@ -25,8 +25,22 @@ export default function TeamReportsPage() {
   const [routeStatuses, setRouteStatuses] = useState<RouteStatus[]>([]);
   const [loadingRoutes, setLoadingRoutes] = useState(true);
 
+  const [darkMode, setDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
   const currentMonth = new Date().toISOString().slice(0, 7);
   const [year, month] = currentMonth.split("-");
+
+  // ダークモード設定を読み込む
+  useEffect(() => {
+    const savedMode = localStorage.getItem("darkMode");
+
+    if (savedMode) {
+      setDarkMode(JSON.parse(savedMode));
+    }
+
+    setMounted(true);
+  }, []);
 
   // ログイン状態を確認
   useEffect(() => {
@@ -176,11 +190,22 @@ export default function TeamReportsPage() {
     return `${Number(m)}月${Number(d)}日`;
   };
 
+  // ダークモード設定の読み込みが終わるまで表示しない
+  if (!mounted) return null;
+
   return (
-    <main className="mx-auto max-w-2xl px-6 py-10">
+    <main
+      className={`mx-auto min-h-screen max-w-2xl px-6 py-10 transition-all duration-300 ${
+        darkMode
+          ? "bg-[#111827] text-white"
+          : "bg-white text-gray-800"
+      }`}
+    >
       <Link
         href="/"
-        className="mb-6 inline-block text-sm text-gray-400"
+        className={`mb-6 inline-block text-sm ${
+          darkMode ? "text-gray-400" : "text-gray-400"
+        }`}
       >
         ← ホームへ戻る
       </Link>
@@ -189,14 +214,30 @@ export default function TeamReportsPage() {
         週間班長レポート
       </h1>
 
-      <p className="mb-10 text-sm text-gray-400">
+      <p
+        className={`mb-10 text-sm ${
+          darkMode ? "text-gray-400" : "text-gray-400"
+        }`}
+      >
         班の歩みを記録していきましょう
       </p>
 
       {/* 月 */}
       <section className="mb-6">
-        <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
-          <p className="text-sm text-gray-400">
+        <div
+          className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+            darkMode
+              ? "bg-gray-800/80"
+              : "bg-gray-50"
+          }`}
+        >
+          <p
+            className={`text-sm ${
+              darkMode
+                ? "text-gray-400"
+                : "text-gray-400"
+            }`}
+          >
             対象月
           </p>
 
@@ -208,8 +249,20 @@ export default function TeamReportsPage() {
 
       {/* 班 */}
       <section className="mb-6">
-        <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
-          <p className="mb-3 text-sm text-gray-400">
+        <div
+          className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+            darkMode
+              ? "bg-gray-800/80"
+              : "bg-gray-50"
+          }`}
+        >
+          <p
+            className={`mb-3 text-sm ${
+              darkMode
+                ? "text-gray-400"
+                : "text-gray-400"
+            }`}
+          >
             班
           </p>
 
@@ -219,7 +272,11 @@ export default function TeamReportsPage() {
 
           <Link
             href="/team-reports/members"
-            className="mt-4 inline-block text-xs text-green-600"
+            className={`mt-4 inline-block text-xs ${
+              darkMode
+                ? "text-green-400"
+                : "text-green-600"
+            }`}
           >
             班員構成を編集 →
           </Link>
@@ -228,14 +285,32 @@ export default function TeamReportsPage() {
 
       {/* 班員構成 */}
       <section className="mb-6">
-        <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
-          <p className="text-sm text-gray-400">
+        <div
+          className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+            darkMode
+              ? "bg-gray-800/80"
+              : "bg-gray-50"
+          }`}
+        >
+          <p
+            className={`text-sm ${
+              darkMode
+                ? "text-gray-400"
+                : "text-gray-400"
+            }`}
+          >
             班員構成
           </p>
 
           <div className="mt-5 space-y-3">
             <div>
-              <p className="text-xs text-gray-400">
+              <p
+                className={`text-xs ${
+                  darkMode
+                    ? "text-gray-400"
+                    : "text-gray-400"
+                }`}
+              >
                 班長
               </p>
 
@@ -245,7 +320,13 @@ export default function TeamReportsPage() {
             </div>
 
             <div>
-              <p className="text-xs text-gray-400">
+              <p
+                className={`text-xs ${
+                  darkMode
+                    ? "text-gray-400"
+                    : "text-gray-400"
+                }`}
+              >
                 副班長
               </p>
 
@@ -255,7 +336,13 @@ export default function TeamReportsPage() {
             </div>
 
             <div>
-              <p className="text-xs text-gray-400">
+              <p
+                className={`text-xs ${
+                  darkMode
+                    ? "text-gray-400"
+                    : "text-gray-400"
+                }`}
+              >
                 班員
               </p>
 
@@ -273,7 +360,13 @@ export default function TeamReportsPage() {
                     ))}
                 </div>
               ) : (
-                <p className="mt-1 text-gray-400">
+                <p
+                  className={`mt-1 ${
+                    darkMode
+                      ? "text-gray-400"
+                      : "text-gray-400"
+                  }`}
+                >
                   未設定
                 </p>
               )}
@@ -284,12 +377,24 @@ export default function TeamReportsPage() {
 
       {/* 路程 */}
       <section>
-        <p className="mb-3 text-sm text-gray-400">
+        <p
+          className={`mb-3 text-sm ${
+            darkMode
+              ? "text-gray-400"
+              : "text-gray-400"
+          }`}
+        >
           今月の路程
         </p>
 
         {loadingRoutes ? (
-          <p className="text-sm text-gray-400">
+          <p
+            className={`text-sm ${
+              darkMode
+                ? "text-gray-400"
+                : "text-gray-400"
+            }`}
+          >
             路程状況を読み込み中...
           </p>
         ) : (
@@ -300,8 +405,20 @@ export default function TeamReportsPage() {
                 href={`/team-reports/routes/${routeStatus.route}`}
                 className="block"
               >
-                <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
-                  <p className="text-sm text-gray-400">
+                <div
+                  className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+                    darkMode
+                      ? "bg-gray-800/80"
+                      : "bg-gray-50"
+                  }`}
+                >
+                  <p
+                    className={`text-sm ${
+                      darkMode
+                        ? "text-gray-400"
+                        : "text-gray-400"
+                    }`}
+                  >
                     {year}年{Number(month)}月
                   </p>
 
@@ -309,7 +426,13 @@ export default function TeamReportsPage() {
                     {routeStatus.route}次路程
                   </p>
 
-                  <p className="mt-2 text-sm text-gray-400">
+                  <p
+                    className={`mt-2 text-sm ${
+                      darkMode
+                        ? "text-gray-400"
+                        : "text-gray-400"
+                    }`}
+                  >
                     {routeStatus.startDate &&
                     routeStatus.endDate
                       ? `${formatDate(
@@ -322,15 +445,25 @@ export default function TeamReportsPage() {
 
                   <div className="mt-5 space-y-2 text-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500">
+                      <span
+                        className={
+                          darkMode
+                            ? "text-gray-300"
+                            : "text-gray-500"
+                        }
+                      >
                         ① 前路程の振り返り
                       </span>
 
                       <span
                         className={
                           routeStatus.reflection
-                            ? "text-green-600"
-                            : "text-gray-400"
+                            ? darkMode
+                              ? "text-green-400"
+                              : "text-green-600"
+                            : darkMode
+                              ? "text-gray-400"
+                              : "text-gray-400"
                         }
                       >
                         {routeStatus.reflection
@@ -340,15 +473,25 @@ export default function TeamReportsPage() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500">
+                      <span
+                        className={
+                          darkMode
+                            ? "text-gray-300"
+                            : "text-gray-500"
+                        }
+                      >
                         ② 班員ごとの結果
                       </span>
 
                       <span
                         className={
                           routeStatus.results
-                            ? "text-green-600"
-                            : "text-gray-400"
+                            ? darkMode
+                              ? "text-green-400"
+                              : "text-green-600"
+                            : darkMode
+                              ? "text-gray-400"
+                              : "text-gray-400"
                         }
                       >
                         {routeStatus.results
@@ -358,15 +501,25 @@ export default function TeamReportsPage() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500">
+                      <span
+                        className={
+                          darkMode
+                            ? "text-gray-300"
+                            : "text-gray-500"
+                        }
+                      >
                         ③ 次路程の個人目標
                       </span>
 
                       <span
                         className={
                           routeStatus.goals
-                            ? "text-green-600"
-                            : "text-gray-400"
+                            ? darkMode
+                              ? "text-green-400"
+                              : "text-green-600"
+                            : darkMode
+                              ? "text-gray-400"
+                              : "text-gray-400"
                         }
                       >
                         {routeStatus.goals
@@ -376,7 +529,13 @@ export default function TeamReportsPage() {
                     </div>
                   </div>
 
-                  <p className="mt-5 text-xs text-green-600">
+                  <p
+                    className={`mt-5 text-xs ${
+                      darkMode
+                        ? "text-green-400"
+                        : "text-green-600"
+                    }`}
+                  >
                     レポートを開く →
                   </p>
                 </div>

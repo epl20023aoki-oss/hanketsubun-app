@@ -21,7 +21,21 @@ export default function RouteSettingsPage({ params }: Props) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const [darkMode, setDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
   const currentMonth = new Date().toISOString().slice(0, 7);
+
+  // ダークモード設定を読み込む
+  useEffect(() => {
+    const savedMode = localStorage.getItem("darkMode");
+
+    if (savedMode) {
+      setDarkMode(JSON.parse(savedMode));
+    }
+
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -110,9 +124,17 @@ export default function RouteSettingsPage({ params }: Props) {
     }
   };
 
+  if (!mounted) return null;
+
   if (loading) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
+      <main
+        className={`mx-auto min-h-screen max-w-2xl px-6 py-10 transition-all duration-300 ${
+          darkMode
+            ? "bg-[#111827] text-white"
+            : "bg-gray-50 text-gray-900"
+        }`}
+      >
         <p className="text-sm text-gray-400">
           読み込み中...
         </p>
@@ -121,10 +143,20 @@ export default function RouteSettingsPage({ params }: Props) {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-10">
+    <main
+      className={`mx-auto min-h-screen max-w-2xl px-6 py-10 transition-all duration-300 ${
+        darkMode
+          ? "bg-[#111827] text-white"
+          : "bg-gray-50 text-gray-900"
+      }`}
+    >
       <Link
         href={`/team-reports/routes/${route}`}
-        className="mb-6 inline-block text-sm text-gray-400"
+        className={`mb-6 inline-block text-sm transition ${
+          darkMode
+            ? "text-gray-400 hover:text-gray-200"
+            : "text-gray-400 hover:text-gray-600"
+        }`}
       >
         ← 第{route}次路程へ戻る
       </Link>
@@ -137,14 +169,26 @@ export default function RouteSettingsPage({ params }: Props) {
         路程の期間を設定しましょう
       </p>
 
-      <section className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+      <section
+        className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+          darkMode
+            ? "bg-gray-800/80"
+            : "bg-gray-50"
+        }`}
+      >
         <p className="mb-6 text-sm text-gray-400">
           路程期間
         </p>
 
         <div className="space-y-5">
           <div>
-            <p className="mb-3 text-sm text-gray-500">
+            <p
+              className={`mb-3 text-sm ${
+                darkMode
+                  ? "text-gray-300"
+                  : "text-gray-500"
+              }`}
+            >
               開始日
             </p>
 
@@ -152,12 +196,22 @@ export default function RouteSettingsPage({ params }: Props) {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full rounded-2xl border border-gray-300 bg-white p-4 outline-none"
+              className={`w-full rounded-2xl border p-4 outline-none transition ${
+                darkMode
+                  ? "border-gray-600 bg-gray-700 text-white"
+                  : "border-gray-300 bg-white text-gray-900"
+              }`}
             />
           </div>
 
           <div>
-            <p className="mb-3 text-sm text-gray-500">
+            <p
+              className={`mb-3 text-sm ${
+                darkMode
+                  ? "text-gray-300"
+                  : "text-gray-500"
+              }`}
+            >
               終了日
             </p>
 
@@ -165,7 +219,11 @@ export default function RouteSettingsPage({ params }: Props) {
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full rounded-2xl border border-gray-300 bg-white p-4 outline-none"
+              className={`w-full rounded-2xl border p-4 outline-none transition ${
+                darkMode
+                  ? "border-gray-600 bg-gray-700 text-white"
+                  : "border-gray-300 bg-white text-gray-900"
+              }`}
             />
           </div>
 
@@ -173,7 +231,11 @@ export default function RouteSettingsPage({ params }: Props) {
             type="button"
             onClick={saveRouteSettings}
             disabled={saving}
-            className="w-full rounded-2xl bg-gray-800 py-4 text-white disabled:opacity-50"
+            className={`w-full rounded-2xl py-4 text-white transition ${
+              darkMode
+                ? "bg-gray-700 hover:bg-gray-600"
+                : "bg-gray-800 hover:bg-gray-700"
+            } disabled:opacity-50`}
           >
             {saving ? "保存中..." : "保存"}
           </button>

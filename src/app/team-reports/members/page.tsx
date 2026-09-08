@@ -14,8 +14,22 @@ export default function TeamMembersPage() {
   const [user, setUser] = useState<any>(null);
   const [saving, setSaving] = useState(false);
 
+  const [darkMode, setDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
   const currentMonth = new Date().toISOString().slice(0, 7);
   const [year, month] = currentMonth.split("-");
+
+  // ダークモード設定を読み込む
+  useEffect(() => {
+    const savedMode = localStorage.getItem("darkMode");
+
+    if (savedMode) {
+      setDarkMode(JSON.parse(savedMode));
+    }
+
+    setMounted(true);
+  }, []);
 
   // ログイン状態を確認
   useEffect(() => {
@@ -91,13 +105,13 @@ export default function TeamMembersPage() {
           "team_reports",
           currentMonth
         ),
-       {
-  team,
-  leader,
-  subLeader,
-  members,
-  updatedAt: new Date(),
-},
+        {
+          team,
+          leader,
+          subLeader,
+          members,
+          updatedAt: new Date(),
+        },
         { merge: true }
       );
 
@@ -114,11 +128,23 @@ export default function TeamMembersPage() {
     }
   };
 
+  if (!mounted) return null;
+
   return (
-    <main className="mx-auto max-w-2xl px-6 py-10">
+    <main
+      className={`mx-auto min-h-screen max-w-2xl px-6 py-10 transition-all duration-300 ${
+        darkMode
+          ? "bg-[#111827] text-white"
+          : "bg-gray-50 text-gray-900"
+      }`}
+    >
       <Link
         href="/team-reports"
-        className="mb-6 inline-block text-sm text-gray-400"
+        className={`mb-6 inline-block text-sm transition ${
+          darkMode
+            ? "text-gray-400 hover:text-gray-200"
+            : "text-gray-400 hover:text-gray-600"
+        }`}
       >
         ← 週間班長レポートへ戻る
       </Link>
@@ -131,26 +157,45 @@ export default function TeamMembersPage() {
         {year}年{Number(month)}月の班員構成
       </p>
 
-<section className="mb-6">
-  <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
-    <p className="mb-3 text-sm text-gray-400">
-      班
-    </p>
+      {/* 班 */}
+      <section className="mb-6">
+        <div
+          className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+            darkMode
+              ? "bg-gray-800/80"
+              : "bg-gray-50"
+          }`}
+        >
+          <p className="mb-3 text-sm text-gray-400">
+            班
+          </p>
 
-    <input
-      value={team}
-      onChange={(e) => setTeam(e.target.value)}
-      className="w-full rounded-2xl border border-gray-300 bg-white p-4 outline-none"
-      placeholder="班名を入力"
-    />
-  </div>
-</section>
+          <input
+            value={team}
+            onChange={(e) =>
+              setTeam(e.target.value)
+            }
+            className={`w-full rounded-2xl border p-4 outline-none transition ${
+              darkMode
+                ? "border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                : "border-gray-300 bg-white text-gray-900"
+            }`}
+            placeholder="班名を入力"
+          />
+        </div>
+      </section>
 
       <div className="space-y-6">
 
         {/* 班長 */}
         <section>
-          <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+          <div
+            className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+              darkMode
+                ? "bg-gray-800/80"
+                : "bg-gray-50"
+            }`}
+          >
             <p className="mb-3 text-sm text-gray-400">
               班長
             </p>
@@ -160,7 +205,11 @@ export default function TeamMembersPage() {
               onChange={(e) =>
                 setLeader(e.target.value)
               }
-              className="w-full rounded-2xl border border-gray-300 bg-white p-4 outline-none"
+              className={`w-full rounded-2xl border p-4 outline-none transition ${
+                darkMode
+                  ? "border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                  : "border-gray-300 bg-white text-gray-900"
+              }`}
               placeholder="班長の名前"
             />
           </div>
@@ -168,7 +217,13 @@ export default function TeamMembersPage() {
 
         {/* 副班長 */}
         <section>
-          <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+          <div
+            className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+              darkMode
+                ? "bg-gray-800/80"
+                : "bg-gray-50"
+            }`}
+          >
             <p className="mb-3 text-sm text-gray-400">
               副班長
             </p>
@@ -178,7 +233,11 @@ export default function TeamMembersPage() {
               onChange={(e) =>
                 setSubLeader(e.target.value)
               }
-              className="w-full rounded-2xl border border-gray-300 bg-white p-4 outline-none"
+              className={`w-full rounded-2xl border p-4 outline-none transition ${
+                darkMode
+                  ? "border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                  : "border-gray-300 bg-white text-gray-900"
+              }`}
               placeholder="副班長の名前"
             />
           </div>
@@ -186,7 +245,13 @@ export default function TeamMembersPage() {
 
         {/* 班員 */}
         <section>
-          <div className="rounded-3xl bg-gray-50 p-6 shadow-sm">
+          <div
+            className={`rounded-3xl p-6 shadow-sm transition-all duration-300 ${
+              darkMode
+                ? "bg-gray-800/80"
+                : "bg-gray-50"
+            }`}
+          >
             <p className="mb-4 text-sm text-gray-400">
               班員
             </p>
@@ -202,7 +267,11 @@ export default function TeamMembersPage() {
                       e.target.value
                     )
                   }
-                  className="w-full rounded-2xl border border-gray-300 bg-white p-4 outline-none"
+                  className={`w-full rounded-2xl border p-4 outline-none transition ${
+                    darkMode
+                      ? "border-gray-600 bg-gray-700 text-white placeholder:text-gray-400"
+                      : "border-gray-300 bg-white text-gray-900"
+                  }`}
                   placeholder={`班員 ${index + 1}`}
                 />
               ))}
@@ -211,7 +280,11 @@ export default function TeamMembersPage() {
             <button
               type="button"
               onClick={addMember}
-              className="mt-4 text-sm text-green-600"
+              className={`mt-4 text-sm ${
+                darkMode
+                  ? "text-green-400"
+                  : "text-green-600"
+              }`}
             >
               ＋ 班員を追加
             </button>
@@ -223,7 +296,11 @@ export default function TeamMembersPage() {
           type="button"
           onClick={saveTeamMembers}
           disabled={saving}
-          className="w-full rounded-2xl bg-gray-800 py-4 text-white disabled:opacity-50"
+          className={`w-full rounded-2xl py-4 text-white transition ${
+            darkMode
+              ? "bg-gray-700 hover:bg-gray-600"
+              : "bg-gray-800 hover:bg-gray-700"
+          } disabled:opacity-50`}
         >
           {saving ? "保存中..." : "保存"}
         </button>
