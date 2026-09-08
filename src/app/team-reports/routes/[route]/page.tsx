@@ -793,6 +793,14 @@ export default function RoutePage({ params }: Props) {
                       throw new Error("PDF化する内容が見つかりませんでした");
                     }
 
+                    // PDFに含めない操作ボタンなどを一時的に非表示にする
+                    const pdfHideElements =
+                      iframeDocument.querySelectorAll(".pdf-hide");
+
+                    pdfHideElements.forEach((element) => {
+                      (element as HTMLElement).style.display = "none";
+                    });
+
                     const pdf = await generatePDF(target as HTMLElement, {
   margin: {
     top: 10,

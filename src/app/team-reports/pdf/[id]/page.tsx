@@ -197,7 +197,7 @@ export default function TeamReportPDFPage() {
       <div className="mx-auto max-w-4xl">
 
         {/* 操作部分 */}
-        <div className="mb-8 flex items-center justify-between print:hidden">
+        <div className="pdf-hide mb-8 flex items-center justify-between print:hidden">
 
           <button
             onClick={() => router.back()}
