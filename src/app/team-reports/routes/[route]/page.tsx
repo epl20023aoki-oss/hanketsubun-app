@@ -4,6 +4,7 @@ import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import {
+  collection,
   doc,
   getDoc,
   setDoc,
@@ -180,13 +181,53 @@ export default function RoutePage({ params }: Props) {
     resultsComplete &&
     goalsComplete;
 
-  // 班員入力用URLを作成
-  const createInputUrl = () => {
-    if (typeof window === "undefined") return;
+  // 班員入力用の共有データを作成し、共有URLを発行
+  const createInputUrl = async () => {
+    if (typeof window === "undefined" || !user) return;
 
-    const url = `${window.location.origin}/team-reports/input/${user.uid}/${currentMonth}/${route}`;
-    setInputUrl(url);
-    setUrlCopied(false);
+    try {
+      // 班情報を取得
+      const teamReportRef = doc(
+        db,
+        "users",
+        user.uid,
+        "team_reports",
+        currentMonth
+      );
+
+      const teamReportSnap = await getDoc(teamReportRef);
+
+      if (!teamReportSnap.exists()) {
+        alert("班員構成が登録されていません");
+        return;
+      }
+
+      const teamData = teamReportSnap.data();
+
+      // 共有用IDを生成
+      const shareRef = doc(collection(db, "team_report_inputs"));
+
+      // 共有入力ページが参照するデータを保存
+      await setDoc(shareRef, {
+        month: currentMonth,
+        route: Number(route),
+        team: teamData.team || "",
+        leader: teamData.leader || "",
+        subLeader: teamData.subLeader || "",
+        members: teamData.members || [],
+        startDate,
+        endDate,
+        createdBy: user.uid,
+        createdAt: new Date(),
+      });
+
+      const url = `${window.location.origin}/team-reports/input/${shareRef.id}`;
+      setInputUrl(url);
+      setUrlCopied(false);
+    } catch (error) {
+      console.error("共有入力URL作成エラー", error);
+      alert("共有入力URLの作成に失敗しました");
+    }
   };
 
   const copyInputUrl = async () => {
