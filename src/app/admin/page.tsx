@@ -36,6 +36,10 @@ export default function AdminPage() {
   const [searchTeam, setSearchTeam] =
     useState("");
 
+  // 総括専用の参加月検索
+  const [summarySearchMonth, setSummarySearchMonth] =
+    useState("");
+
   const [activeTab, setActiveTab] =
     useState("reports");
 
@@ -722,7 +726,35 @@ export default function AdminPage() {
 
         {activeTab === "summaries" && (
           <div>
+            {/* 総括専用検索 */}
+            <div className="mb-6">
+              <label
+                className={`mb-2 block text-sm ${
+                  darkMode
+                    ? "text-gray-300"
+                    : "text-gray-600"
+                }`}
+              >
+                参加月検索
+              </label>
 
+              <input
+                type="month"
+                value={summarySearchMonth}
+                onChange={(e) =>
+                  setSummarySearchMonth(
+                    e.target.value
+                  )
+                }
+                className={`w-full rounded-xl border px-4 py-2 ${
+                  darkMode
+                    ? "border-gray-700 bg-gray-800 text-white"
+                    : "border-gray-300 bg-white"
+                }`}
+              />
+            </div>
+
+          
             {submittedSummaries.length === 0 && (
               <p
                 className={`text-sm ${
@@ -738,11 +770,24 @@ export default function AdminPage() {
             {submittedSummaries
               .filter((item) => {
                 const matchName =
-                  item.name?.includes(
-                    searchName
+                  !searchName ||
+                  item.name?.includes(searchName);
+
+                // 総括専用：
+                // 検索月が参加期間（開始月～終了月）に含まれるか
+                const matchMonth =
+                  !summarySearchMonth ||
+                  (
+                    item.startMonth &&
+                    item.endMonth &&
+                    item.startMonth <= summarySearchMonth &&
+                    summarySearchMonth <= item.endMonth
                   );
 
-                return matchName;
+                return (
+                  matchName &&
+                  matchMonth
+                );
               })
               .map((item) => (
                 <Link
