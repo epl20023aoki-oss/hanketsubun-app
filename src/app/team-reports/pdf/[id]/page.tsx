@@ -138,60 +138,63 @@ export default function TeamReportPDFPage() {
     });
   };
 
- const getMemberNames = () => {
-  if (!report) return [];
+  const getMemberNames = () => {
+    if (!report) return [];
 
-  const names: string[] = [];
+    // PDFでは入力画面と同じく
+    // 班長 → 副班長 → 班員
+    // の順番で表示する。
+    const names: string[] = [];
 
-  // ① 班長
-  if (report.leader) {
-    names.push(report.leader);
-  }
-
-  // ② 副班長
-  if (report.subLeader && report.subLeader !== report.leader) {
-    names.push(report.subLeader);
-  }
-
-  // ③ 班員
-  report.members?.forEach((name) => {
-    if (
-      name &&
-      name !== report.leader &&
-      name !== report.subLeader &&
-      !names.includes(name)
-    ) {
-      names.push(name);
+    // ① 班長
+    if (report.leader) {
+      names.push(report.leader);
     }
-  });
 
-  // ④ 結果・目標にだけ存在する名前も追加
-  const additionalNames = new Set<string>();
+    // ② 副班長
+    if (report.subLeader && report.subLeader !== report.leader) {
+      names.push(report.subLeader);
+    }
 
-  if (report.results) {
-    Object.keys(report.results).forEach((name) => {
-      if (name !== "updatedAt") {
-        additionalNames.add(name);
+    // ③ 班員
+    report.members?.forEach((name) => {
+      if (
+        name &&
+        name !== report.leader &&
+        name !== report.subLeader &&
+        !names.includes(name)
+      ) {
+        names.push(name);
       }
     });
-  }
 
-  if (report.goals) {
-    Object.keys(report.goals).forEach((name) => {
-      if (name !== "updatedAt") {
-        additionalNames.add(name);
+    // 結果・目標側にだけ存在する名前があれば最後に追加
+    const additionalNames = new Set<string>();
+
+    if (report.results) {
+      Object.keys(report.results).forEach((name) => {
+        if (name !== "updatedAt") {
+          additionalNames.add(name);
+        }
+      });
+    }
+
+    if (report.goals) {
+      Object.keys(report.goals).forEach((name) => {
+        if (name !== "updatedAt") {
+          additionalNames.add(name);
+        }
+      });
+    }
+
+    additionalNames.forEach((name) => {
+      if (!names.includes(name)) {
+        names.push(name);
       }
     });
-  }
 
-  additionalNames.forEach((name) => {
-    if (!names.includes(name)) {
-      names.push(name);
-    }
-  });
-
-  return names;
-};
+    return names;
+  };
 
   if (loading) {
     return (
