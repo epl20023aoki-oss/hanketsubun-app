@@ -126,30 +126,59 @@ export default function TeamReportDetailPage() {
   };
 
   const getMemberNames = () => {
-    if (!report) return [];
+  if (!report) return [];
 
-    const names = new Set<string>();
+  // 班長 → 副班長 → 班員 の順番で表示
+  const orderedNames: string[] = [];
 
-    if (report.members) {
-      report.members.forEach((name) => {
-        if (name) names.add(name);
-      });
+  // ① 班長
+  if (report.leader) {
+    orderedNames.push(report.leader);
+  }
+
+  // ② 副班長
+  if (
+    report.subLeader &&
+    report.subLeader !== report.leader
+  ) {
+    orderedNames.push(report.subLeader);
+  }
+
+  // ③ 班員
+  report.members?.forEach((name) => {
+    if (
+      name &&
+      name !== report.leader &&
+      name !== report.subLeader &&
+      !orderedNames.includes(name)
+    ) {
+      orderedNames.push(name);
     }
+  });
 
-    if (report.results) {
-      Object.keys(report.results).forEach((name) => {
-        if (name !== "updatedAt") names.add(name);
-      });
+  // 結果・目標にだけ存在する名前があれば最後に追加
+  const additionalNames = new Set<string>();
+
+  Object.keys(report.results || {}).forEach((name) => {
+    if (name !== "updatedAt") {
+      additionalNames.add(name);
     }
+  });
 
-    if (report.goals) {
-      Object.keys(report.goals).forEach((name) => {
-        if (name !== "updatedAt") names.add(name);
-      });
+  Object.keys(report.goals || {}).forEach((name) => {
+    if (name !== "updatedAt") {
+      additionalNames.add(name);
     }
+  });
 
-    return Array.from(names);
-  };
+  additionalNames.forEach((name) => {
+    if (!orderedNames.includes(name)) {
+      orderedNames.push(name);
+    }
+  });
+
+  return orderedNames;
+};
 
   if (loading) {
     return (
