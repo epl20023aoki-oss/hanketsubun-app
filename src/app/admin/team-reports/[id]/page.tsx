@@ -7,6 +7,7 @@ import { db } from "../../../lib/firebase";
 
 type TeamReport = {
   id: string;
+  uid?: string;
   month: string;
   route: number;
   team: string;
@@ -53,6 +54,9 @@ export default function TeamReportDetailPage() {
 
   const id = params.id as string;
 
+  const decodedId = decodeURIComponent(id || "");
+  const [selectedMonth, uid, route] = decodedId.split("|");
+
   const [report, setReport] = useState<TeamReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
@@ -66,7 +70,15 @@ export default function TeamReportDetailPage() {
     const fetchReport = async () => {
       try {
         const snapshot = await getDoc(
-          doc(db, "submitted_team_reports", id)
+          doc(
+            db,
+            "submitted_team_reports",
+            selectedMonth,
+            "users",
+            uid,
+            "routes",
+            route
+          )
         );
 
         if (snapshot.exists()) {
@@ -82,10 +94,10 @@ export default function TeamReportDetailPage() {
       }
     };
 
-    if (id) {
+    if (selectedMonth && uid && route) {
       fetchReport();
     }
-  }, [id]);
+  }, [selectedMonth, uid, route]);
 
   const formatDate = (date?: string) => {
     if (!date) return "";
@@ -197,7 +209,7 @@ export default function TeamReportDetailPage() {
   </button>
 
   <button
-    onClick={() => router.push(`/team-reports/pdf/${report.id}`)}
+    onClick={() => router.push(`/team-reports/pdf/${encodeURIComponent(`${report.month}|${report.uid || uid}|${report.route}`)}`)}
     className={`rounded-xl px-4 py-2 text-sm ${
       darkMode
         ? "bg-gray-700 text-white"

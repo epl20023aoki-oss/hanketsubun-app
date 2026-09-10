@@ -57,6 +57,9 @@ export default function TeamReportPDFPage() {
 
   const id = params.id as string;
 
+  const decodedId = decodeURIComponent(id || "");
+  const [selectedMonth, uid, route] = decodedId.split("|");
+
   const [report, setReport] = useState<TeamReport | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -72,7 +75,15 @@ export default function TeamReportPDFPage() {
     const fetchReport = async () => {
       try {
         const snapshot = await getDoc(
-          doc(db, "submitted_team_reports", id)
+          doc(
+            db,
+            "submitted_team_reports",
+            selectedMonth,
+            "users",
+            uid,
+            "routes",
+            route
+          )
         );
 
         if (snapshot.exists()) {
@@ -88,10 +99,10 @@ export default function TeamReportPDFPage() {
       }
     };
 
-    if (id) {
+    if (selectedMonth && uid && route) {
       fetchReport();
     }
-  }, [id]);
+  }, [selectedMonth, uid, route]);
 
   useEffect(() => {
     const savedMode = localStorage.getItem("darkMode");
@@ -197,7 +208,7 @@ export default function TeamReportPDFPage() {
       <div className="mx-auto max-w-4xl">
 
         {/* 操作部分 */}
-        <div className="pdf-hide mb-8 flex items-center justify-between print:hidden">
+        <div className="mb-8 flex items-center justify-between print:hidden">
 
           <button
             onClick={() => router.back()}

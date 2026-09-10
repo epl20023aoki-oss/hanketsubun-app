@@ -162,29 +162,54 @@ export default function AdminPage() {
   // 週間班長レポート
   const fetchSubmittedTeamReports =
     async () => {
-      const snapshot =
-        await getDocs(
-          collection(
-            db,
-            "submitted_team_reports"
-          )
-        );
+      if (!selectedMonth) {
+        setSubmittedTeamReports([]);
+        return;
+      }
 
-      const teamReportData =
-        snapshot.docs
-          .map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }))
-          .sort(
-            (a: any, b: any) =>
-              (b.submittedAt
-                ?.toDate?.()
-                .getTime() || 0) -
-              (a.submittedAt
-                ?.toDate?.()
-                .getTime() || 0)
+      // submitted_team_reports/{月}/users/{UID}/routes/{路程}
+      const uidSnapshot = await getDocs(
+        collection(
+          db,
+          "submitted_team_reports",
+          selectedMonth,
+          "users"
+        )
+      );
+
+      const routeSnapshots = await Promise.all(
+        uidSnapshot.docs.map(async (uidDoc) => {
+          const routesSnapshot = await getDocs(
+            collection(
+              db,
+              "submitted_team_reports",
+              selectedMonth,
+              "users",
+              uidDoc.id,
+              "routes"
+            )
           );
+
+          return routesSnapshot.docs.map((routeDoc) => ({
+            id: encodeURIComponent(
+              `${selectedMonth}|${uidDoc.id}|${routeDoc.id}`
+            ),
+            ...routeDoc.data(),
+          }));
+        })
+      );
+
+      const teamReportData = routeSnapshots
+        .flat()
+        .sort(
+          (a: any, b: any) =>
+            (b.submittedAt
+              ?.toDate?.()
+              .getTime() || 0) -
+            (a.submittedAt
+              ?.toDate?.()
+              .getTime() || 0)
+        );
 
       setSubmittedTeamReports(
         teamReportData

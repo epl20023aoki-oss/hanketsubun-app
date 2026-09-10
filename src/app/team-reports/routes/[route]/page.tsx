@@ -410,14 +410,37 @@ export default function RoutePage({ params }: Props) {
       // ⑧ スタッフ確認用データを保存
       // --------------------------------
 
-      const submissionId =
-        `${user.uid}_${selectedMonth}_route_${route}`;
+      // 月・UIDの親ドキュメントを作成
+      await setDoc(
+        doc(db, "submitted_team_reports", selectedMonth),
+        { month: selectedMonth },
+        { merge: true }
+      );
 
       await setDoc(
         doc(
           db,
           "submitted_team_reports",
-          submissionId
+          selectedMonth,
+          "users",
+          user.uid
+        ),
+        {
+          uid: user.uid,
+          month: selectedMonth,
+        },
+        { merge: true }
+      );
+
+      await setDoc(
+        doc(
+          db,
+          "submitted_team_reports",
+          selectedMonth,
+          "users",
+          user.uid,
+          "routes",
+          String(route)
         ),
         {
           uid: user.uid,
@@ -805,7 +828,7 @@ export default function RoutePage({ params }: Props) {
 
             <div className="mt-5 grid grid-cols-2 gap-3">
               <Link
-                href={`/team-reports/pdf/${user?.uid}_${selectedMonth}_route_${route}`}
+                href={`/team-reports/pdf/${encodeURIComponent(`${selectedMonth}|${user?.uid}|${route}`)}`}
                 target="_blank"
                 className={`rounded-2xl py-3 text-sm transition ${
                   darkMode
@@ -830,7 +853,7 @@ export default function RoutePage({ params }: Props) {
                   try {
                     setSharingPdf(true);
 
-                    const pdfUrl = `/team-reports/pdf/${user.uid}_${selectedMonth}_route_${route}`;
+                    const pdfUrl = `/team-reports/pdf/${encodeURIComponent(`${selectedMonth}|${user.uid}|${route}`)}`;
 
                     // PDF表示ページを一時的に読み込み、画面に表示された内容をPDF化する
                     const iframe =
