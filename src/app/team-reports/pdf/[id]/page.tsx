@@ -141,59 +141,54 @@ export default function TeamReportPDFPage() {
   const getMemberNames = () => {
     if (!report) return [];
 
-    // PDFでは入力画面と同じく
+    // 入力欄と同じ順番で表示
     // 班長 → 副班長 → 班員
-    // の順番で表示する。
-    const names: string[] = [];
+    const orderedNames: string[] = [];
 
-    // ① 班長
     if (report.leader) {
-      names.push(report.leader);
+      orderedNames.push(report.leader);
     }
 
-    // ② 副班長
-    if (report.subLeader && report.subLeader !== report.leader) {
-      names.push(report.subLeader);
+    if (
+      report.subLeader &&
+      report.subLeader !== report.leader
+    ) {
+      orderedNames.push(report.subLeader);
     }
 
-    // ③ 班員
     report.members?.forEach((name) => {
       if (
         name &&
         name !== report.leader &&
         name !== report.subLeader &&
-        !names.includes(name)
+        !orderedNames.includes(name)
       ) {
-        names.push(name);
+        orderedNames.push(name);
       }
     });
 
-    // 結果・目標側にだけ存在する名前があれば最後に追加
-    const additionalNames = new Set<string>();
+    // 結果・目標にのみ存在する名前は最後に追加
+    const allNames = new Set<string>();
 
-    if (report.results) {
-      Object.keys(report.results).forEach((name) => {
-        if (name !== "updatedAt") {
-          additionalNames.add(name);
-        }
-      });
-    }
-
-    if (report.goals) {
-      Object.keys(report.goals).forEach((name) => {
-        if (name !== "updatedAt") {
-          additionalNames.add(name);
-        }
-      });
-    }
-
-    additionalNames.forEach((name) => {
-      if (!names.includes(name)) {
-        names.push(name);
+    Object.keys(report.results || {}).forEach((name) => {
+      if (name !== "updatedAt") {
+        allNames.add(name);
       }
     });
 
-    return names;
+    Object.keys(report.goals || {}).forEach((name) => {
+      if (name !== "updatedAt") {
+        allNames.add(name);
+      }
+    });
+
+    allNames.forEach((name) => {
+      if (!orderedNames.includes(name)) {
+        orderedNames.push(name);
+      }
+    });
+
+    return orderedNames;
   };
 
   if (loading) {
