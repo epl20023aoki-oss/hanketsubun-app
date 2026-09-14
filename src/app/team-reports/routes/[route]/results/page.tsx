@@ -8,7 +8,9 @@ import {
   doc,
   getDocs,
   getDoc,
+  query,
   setDoc,
+  where,
 } from "firebase/firestore";
 import { auth, db } from "../../../../lib/firebase";
 
@@ -133,21 +135,51 @@ export default function ResultsPage({
         let sharedInputs: Record<string, any> = {};
 
         try {
-          const sharedSnap = await getDocs(
-            collection(db, "team_report_inputs")
+          // 新方式：路程に紐付けたshareIdから直接取得する
+          const routeRef = doc(
+            db,
+            "users",
+            user.uid,
+            "team_reports",
+            selectedMonth,
+            "routes",
+            `route_${route}`
           );
 
-          sharedSnap.forEach((sharedDoc) => {
-            const data = sharedDoc.data();
+          const routeSnap = await getDoc(routeRef);
+          const shareId = routeSnap.exists()
+            ? routeSnap.data().shareId || ""
+            : "";
 
-            if (
-              data.createdBy === user.uid &&
-              String(data.month || "") === selectedMonth &&
-              Number(data.route || 0) === Number(route)
-            ) {
+          if (shareId) {
+            const shareSnap = await getDoc(
+              doc(db, "team_report_inputs", shareId)
+            );
+
+            if (shareSnap.exists()) {
+              const data = shareSnap.data();
               sharedInputs = data.inputs || {};
             }
-          });
+          } else {
+            // 旧方式の共有URLにも対応するための移行用読み込み
+            // createdByで自分のデータだけに限定して検索する
+            const legacySnap = await getDocs(
+              query(
+                collection(db, "team_report_inputs"),
+                where("createdBy", "==", user.uid),
+                where("month", "==", selectedMonth),
+                where("route", "==", Number(route))
+              )
+            );
+
+            legacySnap.forEach((sharedDoc) => {
+              const data = sharedDoc.data();
+              Object.assign(
+                sharedInputs,
+                data.inputs || {}
+              );
+            });
+          }
         } catch (sharedError) {
           console.error(
             "共有入力データの読み込みエラー",

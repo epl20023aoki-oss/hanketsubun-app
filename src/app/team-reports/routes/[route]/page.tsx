@@ -235,7 +235,58 @@ export default function RoutePage({ params }: Props) {
 
       const teamData = teamReportSnap.data();
 
-      // 共有用IDを生成
+      // 既にこの月・この路程の共有URLが発行されていれば再利用する
+      const routeRef = doc(
+        db,
+        "users",
+        user.uid,
+        "team_reports",
+        selectedMonth,
+        "routes",
+        `route_${route}`
+      );
+
+      const routeSnap = await getDoc(routeRef);
+      const existingShareId = routeSnap.exists()
+        ? routeSnap.data().shareId || ""
+        : "";
+
+      if (existingShareId) {
+        const existingShareRef = doc(
+          db,
+          "team_report_inputs",
+          existingShareId
+        );
+
+        const existingShareSnap = await getDoc(
+          existingShareRef
+        );
+
+        if (existingShareSnap.exists()) {
+          // 既存の入力内容は残したまま、班情報だけ最新状態にする
+          await setDoc(
+            existingShareRef,
+            {
+              month: selectedMonth,
+              route: Number(route),
+              team: teamData.team || "",
+              leader: teamData.leader || "",
+              subLeader: teamData.subLeader || "",
+              members: teamData.members || [],
+              startDate,
+              endDate,
+            },
+            { merge: true }
+          );
+
+          const url = `${window.location.origin}/team-reports/input/${existingShareId}`;
+          setInputUrl(url);
+          setUrlCopied(false);
+          return;
+        }
+      }
+
+      // 新しい共有用IDを生成
       const shareRef = doc(
         collection(db, "team_report_inputs")
       );
@@ -253,6 +304,13 @@ export default function RoutePage({ params }: Props) {
         createdBy: user.uid,
         createdAt: new Date(),
       });
+
+      // この月・この路程と共有URLを紐付ける
+      await setDoc(
+        routeRef,
+        { shareId: shareRef.id },
+        { merge: true }
+      );
 
       const url = `${window.location.origin}/team-reports/input/${shareRef.id}`;
       setInputUrl(url);
